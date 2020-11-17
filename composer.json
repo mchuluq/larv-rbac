@@ -30,7 +30,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Mchuluq\\Laravel\\Rbac\\UacServiceProvider"
+                "Mchuluq\\Laravel\\Rbac\\RbacServiceProvider"
             ]
         }
     },
