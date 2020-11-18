@@ -70,7 +70,19 @@ class ReplaceUsersTable extends Migration{
             $table->string('account_id',255)->nullable();
 
             $table->engine = 'InnoDB';
-        });        
+        });
+        
+        Schema::create('rbac_remember_tokens', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('token', 100);
+            $table->string('user_id',36);
+            $table->timestamps();
+            $table->dateTime('expires_at');
+
+            $table->unique(['token', 'user_id']);
+
+            $table->engine = 'InnoDB';
+        });
     }
 
     public function down(){
