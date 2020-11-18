@@ -8,41 +8,39 @@ use Illuminate\Support\Facades\DB;
 class ReplaceUsersTable extends Migration{
 
     public function up(){
-        Schema::create('rbac_accounts', function (Blueprint $table) {
-            $table->uuid('id');
+        Schema::create('accounts', function (Blueprint $table) {
+            $table->uuid('id')->primary();
             $table->string('user_id',36);
-            $table->string('group_slug',64);
+            $table->string('group_id',64);
+            $table->boolean('active')->default(false);
             $table->string('accountable_id',36)->comment('e.g : nim, nik, reg_no');
             $table->string('accountable_type')->comment('e.g : app/models/mahasiswa, app/models/pegawai, app/models/registrasi');
             
-            $table->primary('id');
             $table->engine = 'InnoDB';
         });
         
-        Schema::create('rbac_groups', function (Blueprint $table) {
-            $table->string('slug',64);
+        Schema::create('groups', function (Blueprint $table) {
+            $table->string('id',64)->primary()->comment('name slug');
+            $table->string('name',64);
+            $table->text('image')->nullable();
+            $table->string('description')->nullable();
+                        
+            $table->engine = 'InnoDB';
+        });
+        
+        Schema::create('roles', function (Blueprint $table) {
+            $table->string('id',64)->primary()->comment('name slug');
             $table->string('name',64);
             $table->string('description')->nullable();
             
-            $table->primary('slug');
             $table->engine = 'InnoDB';
         });
         
-        Schema::create('rbac_roles', function (Blueprint $table) {
-            $table->string('slug',64);
-            $table->string('name',64);
-            $table->string('description')->nullable();
-            
-            $table->primary('slug');
-            $table->engine = 'InnoDB';
-        });
-        
-        Schema::create('rbac_menus', function (Blueprint $table) {
-            $table->string('slug',64);
+        Schema::create('menus', function (Blueprint $table) {
+            $table->string('id',64)->primary()->comment('name slug');
             $table->string('route',255)->nullable();
             $table->string('label',64);
             $table->string('html_attr',255)->nullable();
-            $table->string('parameter',255)->comment('additional param, json object or just string')->nullable();
             $table->string('icon',64)->nullable();
             $table->string('parent',64)->nullable();
             $table->string('position',64)->comment('e.g : header, sidebar, footer, etc');
@@ -51,28 +49,27 @@ class ReplaceUsersTable extends Migration{
             $table->integer('display_order')->default(0);
             $table->string('description')->nullable();
             
-            $table->primary('slug');
             $table->engine = 'InnoDB';
         });
 
-        Schema::create('rbac_role_actors', function (Blueprint $table) {
-            $table->string('role_slug', 64);
-            $table->string('group_slug', 64)->nullable();
+        Schema::create('role_actors', function (Blueprint $table) {
+            $table->string('role_id', 64);
+            $table->string('group_id', 64)->nullable();
             $table->string('account_id',255)->nullable();
 
             $table->engine = 'InnoDB';
         });
         
-        Schema::create('rbac_permissions', function (Blueprint $table) {
-            $table->string('menu_slug', 64);
-            $table->string('group_slug', 64)->nullable();
-            $table->string('role_slug', 64)->nullable();
+        Schema::create('permissions', function (Blueprint $table) {
+            $table->string('menu_id', 64);
+            $table->string('group_id', 64)->nullable();
+            $table->string('role_id', 64)->nullable();
             $table->string('account_id',255)->nullable();
 
             $table->engine = 'InnoDB';
         });
         
-        Schema::create('rbac_remember_tokens', function (Blueprint $table) {
+        Schema::create('remember_tokens', function (Blueprint $table) {
             $table->increments('id');
             $table->string('token', 100);
             $table->string('user_id',36);
@@ -83,14 +80,25 @@ class ReplaceUsersTable extends Migration{
 
             $table->engine = 'InnoDB';
         });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('phone',20)->after('email')->unique()->nullable();
+            $table->text('avatar_url')->after('phone')->nullable();
+            $table->boolean('active')->default(true);
+            $table->string('account_id',36)->nullable()->comment('active account');
+        });
     }
 
     public function down(){
-        Schema::dropIfExists('rbac_accounts');
-        Schema::dropIfExists('rbac_groups');
-        Schema::dropIfExists('rbac_roles');
-        Schema::dropIfExists('rbac_menus');
-        Schema::dropIfExists('rbac_role_actors');
-        Schema::dropIfExists('rbac_permissions');
+        Schema::dropIfExists('accounts');
+        Schema::dropIfExists('groups');
+        Schema::dropIfExists('roles');
+        Schema::dropIfExists('menus');
+        Schema::dropIfExists('role_actors');
+        Schema::dropIfExists('permissions');
+        
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn(['avatar_url','account_id']);
+        });
     }
 }
