@@ -3,9 +3,8 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
 
-class ReplaceUsersTable extends Migration{
+class BuildRbacTables extends Migration{
 
     public function up(){
         Schema::create('accounts', function (Blueprint $table) {
@@ -75,6 +74,8 @@ class ReplaceUsersTable extends Migration{
             $table->string('user_id',36);
             $table->timestamps();
             $table->dateTime('expires_at');
+            $table->text('user_agent');
+            $table->string('ip_address',40);
 
             $table->unique(['token', 'user_id']);
 
@@ -82,7 +83,8 @@ class ReplaceUsersTable extends Migration{
         });
 
         Schema::table('users', function (Blueprint $table) {
-            $table->string('phone',20)->after('email')->unique()->nullable();
+            $table->string('username',64)->after('email')->unique()->nullable();
+            $table->string('phone',20)->after('username')->unique()->nullable();
             $table->text('avatar_url')->after('phone')->nullable();
             $table->boolean('active')->default(true);
             $table->string('account_id',36)->nullable()->comment('active account');
@@ -96,9 +98,10 @@ class ReplaceUsersTable extends Migration{
         Schema::dropIfExists('menus');
         Schema::dropIfExists('role_actors');
         Schema::dropIfExists('permissions');
+        Schema::dropIfExists('remember_tokens');
         
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['avatar_url','account_id']);
+            $table->dropColumn(['avatar_url','account_id','phone','active','username']);
         });
     }
 }

@@ -4,8 +4,7 @@
     "keywords": [
         "laravel",
         "session",
-        "rbac",
-        "uac"
+        "rbac"
     ],
     "support": {
         "issues": "https://github.com/mchuluq/larv-rbac/issues",
@@ -24,13 +23,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Mchuluq\\Laravel\\Rbac\\": "src"
+            "Mchuluq\\Larv\\Rbac\\": "src"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Mchuluq\\Laravel\\Rbac\\RbacServiceProvider"
+                "Mchuluq\\Larv\\Rbac\\RbacServiceProvider"
             ]
         }
     },
