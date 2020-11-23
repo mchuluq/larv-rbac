@@ -4,6 +4,7 @@ namespace Mchuluq\Larv\Rbac;
 
 use Carbon\Carbon;
 use Illuminate\Auth\EloquentUserProvider as BaseUserProvider;
+use Illuminate\Support\Str;
 use Request;
 
 class UserProvider extends BaseUserProvider{
@@ -56,7 +57,7 @@ class UserProvider extends BaseUserProvider{
      * @return void
      */
     public function replaceRememberToken($identifier, $token, $newToken, $expire){
-        $model = $this->getModelByIdentifier($identifier);
+        $model = $this->getModelById($identifier);
         if ($model) {
             $model->rememberTokens()->where('token', $token)->update([
                 'token' => $newToken,
@@ -75,7 +76,7 @@ class UserProvider extends BaseUserProvider{
      * @return null
      */
     public function deleteRememberToken($identifier, $token){
-        $model = $this->getModelByIdentifier($identifier);
+        $model = $this->getModelById($identifier);
         if ($model && $token = $model->rememberTokens()->where('token', $token)->first()) {
             $token->delete();
         }
@@ -89,7 +90,7 @@ class UserProvider extends BaseUserProvider{
      * @return null
      */
     public function purgeRememberTokens($identifier, $expired = false){
-        $model = $this->getModelByIdentifier($identifier);
+        $model = $this->getModelById($identifier);
 
         if ($model) {
             $query = $model->rememberTokens();
@@ -108,8 +109,39 @@ class UserProvider extends BaseUserProvider{
      * @param  mixed $identifier
      * @return \Illuminate\Contracts\Auth\Authenticatable|null
      */
-    protected function getModelByIdentifier($identifier){
+    protected function getModelById($identifier){
         $model = $this->createModel();
-        return $model->where($model->getAuthIdentifierName(), $identifier)->first();
+        $test = $model->where([$model->getAuthIdentifierName()=>$identifier,'active'=>true])->first();
+        dd($test);
+        return $test;
+    }
+
+    public function retrieveByCredentials(array $credentials){
+        if (
+            empty($credentials) ||
+            (count($credentials) === 1 &&
+                Str::contains($this->firstCredentialKey($credentials), 'password'))
+        ) {
+            return;
+        }
+
+        // First we will add each credential element to the query as a where clause.
+        // Then we can execute the query and, if we found a user, return it in a
+        // Eloquent User "model" that will be utilized by the Guard instances.
+        $query = $this->newModelQuery();
+
+        foreach ($credentials as $key => $value) {
+            if (Str::contains($key, 'password')) {
+                continue;
+            }
+
+            if (is_array($value) || $value instanceof Arrayable) {
+                $query->whereIn($key, $value);
+            } else {
+                $query->where($key, $value);
+            }
+        }
+
+        return $query->where('active',true)->first();
     }
 }
