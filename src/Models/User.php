@@ -5,10 +5,10 @@ namespace Mchuluq\Larv\Rbac\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Auth\Authenticatable as BaseAuthenticatable;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 // use Mchuluq\Larv\Rbac\Models\RememberToken as RememberToken
 // use Mchuluq\Larv\Rbac\Models\Account as Account
-
 class User extends Authenticatable{
 
     public $incrementing = false;
@@ -35,5 +35,20 @@ class User extends Authenticatable{
     
     public function accounts(){
         return $this->hasMany(Account::class);
+    }
+
+    public function setPasswordAttribute($string=null){
+        $this->attributes['password'] = Hash::make($string);
+    }
+
+    public function setAvatarUrlAttribute($value){
+        if(filter_var($value,FILTER_VALIDATE_EMAIL)){
+            $url = 'https://www.gravatar.com/avatar/';
+            $url .= md5(strtolower(trim($value)));
+            $url .= '?'.http_build_query(config('uac.gravatar_options'));
+            $this->attributes['avatar_url'] = $url;
+        }else{
+            $this->attributes['avatar_url'] = $value;
+        }
     }
 }

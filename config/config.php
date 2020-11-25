@@ -16,4 +16,10 @@ return array(
         'confirm' => 'auth.passwords.confirm',
         'account' => 'auth.account'
     ],
+
+    'gravatar_options' => [
+        's' => 80,
+        'd' => 'retro',
+        'r' => 'g',
+    ],
 );

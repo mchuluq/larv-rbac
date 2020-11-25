@@ -13,8 +13,6 @@ class RbacServiceProvider extends ServiceProvider{
     }
 
     public function boot(){
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
-
         // register rbac-web for web guard
         Auth::extend('rbac-web', function ($app, $name, array $config) {
             $provider = $app['auth']->createUserProvider($config['provider'] ?? null);
@@ -43,22 +41,16 @@ class RbacServiceProvider extends ServiceProvider{
             return new \Mchuluq\Larv\Rbac\UserProvider($app['hash'], $config['model']);
         });
 
-        // // load migration and command
-        // if ($this->app->runningInConsole()) {
-        //     $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        // load migration and command
+        if ($this->app->runningInConsole()) {
+            $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
-        //     include_once __DIR__ . '/../console/GroupCommand.php';
-        //     include_once __DIR__ . '/../console/RoleCommand.php';
-        //     include_once __DIR__ . '/../console/UserCommand.php';
-        //     include_once __DIR__ . '/../console/rbacCommand.php';
+            include_once __DIR__ . '/../consoles/UserCommand.php';
 
-        //     $this->commands([
-        //         Console\GroupCommand::class,
-        //         Console\RoleCommand::class,
-        //         Console\UserCommand::class,
-        //         Console\rbacCommand::class
-        //     ]);
-        // }
+            $this->commands([
+                \Mchuluq\Larv\Rbac\Consoles\UserCommand::class
+            ]);
+        }
 
         // $this->publishes([
         //     // Config
