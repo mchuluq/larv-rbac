@@ -16,7 +16,7 @@ return array(
         'confirm' => 'auth.passwords.confirm',
         'account' => 'auth.account',
         'google2fa_register' => 'auth.google2fa.register',
-        'google2fa_confirm' => 'auth.google2fa.confirm',
+        'otp_confirm' => 'auth.otp.confirm',
     ],
 
     'gravatar_options' => [
@@ -25,5 +25,9 @@ return array(
         'r' => 'g',
     ],
 
-    'otp_input_name' => 'otp_input'
+    'otp_input_name' => 'otp_input',
+    'otp_timeout' => 10800,
+    'otp_failed_response' => 'Kode OTP tidak sesuai',
+    'otp_enabled_success' => 'OTP telah diaktifkan',
+    'otp_disabled_success' => 'OTP telah dimatikan',
 );

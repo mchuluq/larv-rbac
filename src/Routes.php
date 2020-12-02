@@ -6,6 +6,7 @@ Route::group(['middleware' => 'web'], function () {
     // AUTH
     Route::match(['get', 'post'], '/auth/login', 'Mchuluq\Larv\Rbac\Controllers\AccountController@doLogin')->name('rbac.auth.login');
     Route::match(['get', 'post'], '/auth/logout', 'Mchuluq\Larv\Rbac\Controllers\AccountController@doLogout')->name('rbac.auth.logout');
+    Route::match(['get', 'post'], '/auth/otp', 'Mchuluq\Larv\Rbac\Controllers\AccountController@doOtp')->name('rbac.auth.otp');
 
     Route::match(['get', 'post'], '/password/forgot', 'Mchuluq\Larv\Rbac\Controllers\AccountController@passwordForgot')->name('rbac.password.forgot');
     Route::match(['get'], '/password/reset/{token}', 'Mchuluq\Larv\Rbac\Controllers\AccountController@passwordReset')->name('rbac.password.reset');

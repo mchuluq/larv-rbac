@@ -16,7 +16,7 @@ class RbacServiceProvider extends ServiceProvider{
         // register rbac-web for web guard
         Auth::extend('rbac-web', function ($app, $name, array $config) {
             $provider = $app['auth']->createUserProvider($config['provider'] ?? null);
-            $guard = new \Mchuluq\Larv\Rbac\SessionGuard($name, $provider, $app['session.store'], request(), $config['expire'] ?? null);
+            $guard = new \Mchuluq\Larv\Rbac\Guards\SessionGuard($name, $provider, $app['session.store'], request(), $config['expire'] ?? null);
             if (method_exists($guard, 'setCookieJar')) {
                 $guard->setCookieJar($app['cookie']);
             }

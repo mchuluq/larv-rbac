@@ -3,6 +3,8 @@
 namespace Mchuluq\Larv\Rbac\Controllers;
 
 use Mchuluq\Larv\Rbac\Traits\Account;
+use Mchuluq\Larv\Rbac\Authenticator\GoogleAuthenticator;
+
 use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
@@ -38,6 +40,16 @@ class AccountController extends Controller{
 
     function doLogout(Request $req){
         return $this->logout($req);
+    }
+
+    function doOtp(Request $req){
+        if ($req->isMethod('post')) {
+            return $this->attemptOtp($req);
+        } else {
+            $data['title'] = 'OTP';
+            $data['url'] = route('rbac.auth.otp');
+            return view(config('rbac.views.login'), $data);
+        }
     }
 
     function passwordForgot(Request $req){
@@ -92,22 +104,36 @@ class AccountController extends Controller{
     }
 
     function otpRegister(Request $req){
-        if ($req->isMethod('post')) {
-            
-        } else {
-            $google2fa = app('pragmarx.google2fa');
-
-            $data["user"] = Auth::user();
-            $data["google2fa_secret"] = $google2fa->generateSecretKey();
-            $data["google2fa_qr_image"] = $google2fa->getQRCodeInline(
-                config('app.name'),
-                Auth::user()->email,
-                $data["google2fa_secret"]
-            );
-
-            $req->session()->flash('google2fa_register', $data);
-            
-            return view(config('rbac.views.google2fa_register'), $data);
+        $user = $this->guard()->user();
+        if($user->otpEnabled()){
+            // prosedur matikan OTP
+            if($req->isMethod('post')){
+                $req->validate(['password','password:rbac-web']);
+                $user->otp_secret = null;
+                $user->save();
+                return redirect(config('rbac.authenticated_redirect_uri'))->with('rbac_status', config('rbac.otp_disabled_success'));
+            }else{
+                $data["user"] = $user;
+                return view(config('rbac.views.otp_register'), $data);
+            }
+        }else{
+            //  prosedur nyalakan OTP
+            if ($req->isMethod('post')) {
+                $req->validate(['otp_secret' => 'required']);
+                $user->otp_secret = $req->input('otp_secret');
+                $user->save();
+                return redirect(config('rbac.authenticated_redirect_uri'))->with('rbac_status', config('rbac.otp_enabled_success'));
+            } else {
+                $ga = new GoogleAuthenticator();
+                $data["user"] = $user;
+                $data["otp_secret"] = $ga->createSecret();
+                $data["otp_qr_image"] = $ga->getQRCodeGoogleUrl(
+                    $user->email,
+                    $data["otp_secret"],
+                    config('app.name')
+                );
+                return view(config('rbac.views.otp_register'), $data);
+            }
         }
     }
 }

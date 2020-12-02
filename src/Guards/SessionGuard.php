@@ -1,6 +1,6 @@
 <?php
 
-namespace Mchuluq\Larv\Rbac;
+namespace Mchuluq\Larv\Rbac\Guards;
 
 use Illuminate\Support\Str;
 use Illuminate\Contracts\Session\Session;

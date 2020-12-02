@@ -2,6 +2,8 @@
 
 namespace Mchuluq\Larv\Rbac\Traits;
 
+use Mchuluq\Larv\Rbac\Authenticator\GoogleAuthenticator;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -15,7 +17,6 @@ use Illuminate\Support\Str;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Support\Facades\Lang;
-
 
 trait Account{
 
@@ -87,16 +88,35 @@ trait Account{
         if ($response = $this->authenticated($request, $this->guard()->user())) {
             return $response;
         }
+        if($this->guard()->user()->otpEnabled()){
+            return redirect()->route('rbac.auth.otp');
+        }
+        return $request->wantsJson() ? new Response('', 204) : redirect()->intended($this->redirectPath());
+    }
+
+    protected function attemptOtp(Request $request){
+        $request->validate([config('otp.input_name') => 'required']);
+        $ga = new GoogleAuthenticator();
+        if (!$ga->verifyCode($this->guard()->user()->otp_secret, $request->input(config('rbac.otp_input_name')))) {
+            $this->sendFailedOtpResponse($request);
+        }
+        $request->session()->put('rbac.auth_otp_confirmed_at', time());
         return $request->wantsJson() ? new Response('', 204) : redirect()->intended($this->redirectPath());
     }
 
     protected function authenticated(Request $request, $user){
-        //
+        
     }
 
     protected function sendFailedLoginResponse(Request $request){
         throw ValidationException::withMessages([
             $this->username() => [trans('auth.failed')],
+        ]);
+    }
+
+    protected function sendFailedOtpResponse(Request $request){
+        throw ValidationException::withMessages([
+            'otp_response' => [config('otp_failed_response')],
         ]);
     }
 
