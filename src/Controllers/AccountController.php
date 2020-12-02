@@ -90,4 +90,24 @@ class AccountController extends Controller{
             return $req->wantsJson() ? new Response('', 204) : redirect()->intended(config('rbac.authenticated_redirect_uri'));
         }
     }
+
+    function otpRegister(Request $req){
+        if ($req->isMethod('post')) {
+            
+        } else {
+            $google2fa = app('pragmarx.google2fa');
+
+            $data["user"] = Auth::user();
+            $data["google2fa_secret"] = $google2fa->generateSecretKey();
+            $data["google2fa_qr_image"] = $google2fa->getQRCodeInline(
+                config('app.name'),
+                Auth::user()->email,
+                $data["google2fa_secret"]
+            );
+
+            $req->session()->flash('google2fa_register', $data);
+            
+            return view(config('rbac.views.google2fa_register'), $data);
+        }
+    }
 }

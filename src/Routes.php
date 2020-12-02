@@ -13,4 +13,6 @@ Route::group(['middleware' => 'web'], function () {
     Route::match(['get', 'post'], 'password/confirm', 'Mchuluq\Larv\Rbac\Controllers\AccountController@passwordConfirm')->name('rbac.password.confirm');
     
     Route::match(['get'], 'account/{account_id?}/{default?}', 'Mchuluq\Larv\Rbac\Controllers\AccountController@accountSwitch')->name('rbac.account.switch');
+    
+    Route::match(['get'], 'otp/register', 'Mchuluq\Larv\Rbac\Controllers\AccountController@otpRegister')->name('rbac.otp.register');
 });

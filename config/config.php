@@ -14,7 +14,9 @@ return array(
         'email' => 'auth.passwords.email',
         'reset' => 'auth.passwords.reset',
         'confirm' => 'auth.passwords.confirm',
-        'account' => 'auth.account'
+        'account' => 'auth.account',
+        'google2fa_register' => 'auth.google2fa.register',
+        'google2fa_confirm' => 'auth.google2fa.confirm',
     ],
 
     'gravatar_options' => [
@@ -22,4 +24,6 @@ return array(
         'd' => 'retro',
         'r' => 'g',
     ],
+
+    'otp_input_name' => 'otp_input'
 );

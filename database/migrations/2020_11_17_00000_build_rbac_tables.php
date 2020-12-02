@@ -86,8 +86,9 @@ class BuildRbacTables extends Migration{
             $table->string('username',64)->after('email')->unique()->nullable();
             $table->string('phone',20)->after('username')->unique()->nullable();
             $table->text('avatar_url')->after('phone')->nullable();
-            $table->boolean('active')->default(true);
-            $table->string('account_id',36)->nullable()->comment('active account');
+            $table->boolean('active')->default(true)->after('avatar_url');
+            $table->string('account_id',36)->nullable()->after('active')->comment('active account');
+            $table->text('otp_secret')->nullable()->after('account_id');
         });
     }
 
@@ -101,7 +102,7 @@ class BuildRbacTables extends Migration{
         Schema::dropIfExists('remember_tokens');
         
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['avatar_url','account_id','phone','active','username']);
+            $table->dropColumn(['avatar_url','account_id','phone','active','username','otp_sceret']);
         });
     }
 }

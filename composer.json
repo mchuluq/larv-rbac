@@ -18,6 +18,9 @@
             "role": "Developer"
         }
     ],
+    "require": {
+        "sonata-project/google-authenticator": "^2.2.0"
+    },
     "require-dev": {
         "mockery/mockery": "~1.0"
     },

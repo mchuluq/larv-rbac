@@ -16,7 +16,7 @@ class User extends Authenticatable{
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'name', 'email', 'username', 'phone', 'avatar_url','email_verified_at','password','active','account_id'
+        'name', 'email', 'username', 'phone', 'avatar_url','email_verified_at','password','active','account_id','otp_secret'
     ];
     
     use BaseAuthenticatable;
@@ -50,5 +50,25 @@ class User extends Authenticatable{
         }else{
             $this->attributes['avatar_url'] = $value;
         }
+    }
+
+    public function setOtpSecretAttribute($value){
+        if(!is_null($value)){
+            $this->attributes['otp_secret'] = encrypt($value);
+        }else{
+            $this->attributes['otp_secret'] = $value;
+        }
+    }
+
+    public function getOtpSecretAttribute($value){
+        if(!is_null($value)){
+            return decrypt($value);
+        }else{
+            return $value;
+        }
+    }
+
+    public function otpEnabled(){
+        return (!is_null($this->otp_secret)) ? true : false;
     }
 }
