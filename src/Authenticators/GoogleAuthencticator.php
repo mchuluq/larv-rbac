@@ -1,6 +1,6 @@
 <?php
 
-namespace Mchuluq\Larv\Rbac\Authenticator;
+namespace Mchuluq\Larv\Rbac\Authenticators;
 
 class GoogleAuthenticator{
 

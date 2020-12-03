@@ -9,10 +9,10 @@ class HasPermission{
 
     public function handle($request, Closure $next){
         if (!Auth::check()) {
-            return redirect(config('uac.unauthenticated_redirect_uri'))->with('message', 'You need to login first');
+            return redirect(config('rbac.unauthenticated_redirect_uri'))->with('message', 'You need to login first');
         }
         if (Auth::user()->otpEnabled() && !$request->session()->has('rbac.auth_otp_confirmed_at')) {
-            return redirect(config('uac.unauthenticated_redirect_uri'))->with('message', 'You need to login first');
+            return redirect()->route('rbac.auth.otp')->with('message', 'You need to login first');
         }
 
         // $user = Auth::user();

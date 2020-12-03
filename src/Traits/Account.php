@@ -2,7 +2,7 @@
 
 namespace Mchuluq\Larv\Rbac\Traits;
 
-use Mchuluq\Larv\Rbac\Authenticator\GoogleAuthenticator;
+use Mchuluq\Larv\Rbac\Authenticators\GoogleAuthenticator;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -95,10 +95,10 @@ trait Account{
     }
 
     protected function attemptOtp(Request $request){
-        $request->validate([config('otp.input_name') => 'required']);
+        $request->validate([config('rbac.otp_input_name') => 'required']);
         $ga = new GoogleAuthenticator();
         if (!$ga->verifyCode($this->guard()->user()->otp_secret, $request->input(config('rbac.otp_input_name')))) {
-            $this->sendFailedOtpResponse($request);
+            return $this->sendFailedOtpResponse($request);
         }
         $request->session()->put('rbac.auth_otp_confirmed_at', time());
         return $request->wantsJson() ? new Response('', 204) : redirect()->intended($this->redirectPath());
@@ -115,9 +115,7 @@ trait Account{
     }
 
     protected function sendFailedOtpResponse(Request $request){
-        throw ValidationException::withMessages([
-            'otp_response' => [config('otp_failed_response')],
-        ]);
+        throw ValidationException::withMessages(['otp' => [config('rbac.otp_failed_response')],]);
     }
 
     public function username(){

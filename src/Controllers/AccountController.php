@@ -3,7 +3,7 @@
 namespace Mchuluq\Larv\Rbac\Controllers;
 
 use Mchuluq\Larv\Rbac\Traits\Account;
-use Mchuluq\Larv\Rbac\Authenticator\GoogleAuthenticator;
+use Mchuluq\Larv\Rbac\Authenticators\GoogleAuthenticator;
 
 use App\Http\Controllers\Controller;
 
@@ -48,7 +48,7 @@ class AccountController extends Controller{
         } else {
             $data['title'] = 'OTP';
             $data['url'] = route('rbac.auth.otp');
-            return view(config('rbac.views.login'), $data);
+            return view(config('rbac.views.otp_confirm'), $data);
         }
     }
 

@@ -15,7 +15,7 @@ return array(
         'reset' => 'auth.passwords.reset',
         'confirm' => 'auth.passwords.confirm',
         'account' => 'auth.account',
-        'google2fa_register' => 'auth.google2fa.register',
+        'otp_register' => 'auth.otp.register',
         'otp_confirm' => 'auth.otp.confirm',
     ],
 
