@@ -2,7 +2,7 @@
 
 namespace Mchuluq\Larv\Rbac\Middlewares;
 
-use Mchuluq\Larv\Rbac\Authenticator\GoogleAuthenticator;
+use Mchuluq\Larv\Rbac\Authenticators\GoogleAuthenticator;
 
 use Closure;
 
@@ -26,23 +26,25 @@ class ConfirmOtp{
         $user = Auth::user();
         $ga = new GoogleAuthenticator();
         if ($user->otpEnabled() && $this->shouldConfirmPassword($request)) {
-            if (!$ga->verifyCode($user->otp_secret, $request->input(config('rbac.otp_input_name')))) {
-                if ($request->expectsJson()) {
-                    return $this->responseFactory->json([
-                        'message' => 'OTP confirmation required.',
-                    ], 423);
-                }
-                return $this->responseFactory->redirectGuest(
-                    $this->urlGenerator->route($redirectToRoute ?? 'rbac.otp.confirm')
-                );
+            if ($ga->verifyCode($user->otp_secret, $request->input(config('rbac.otp_input_name')))) {
+                return $next($request);
             }
+            return $this->makeRequestOTPResponse($request);
         }
-        return $next($request);
+        return $next($request);        
     }
 
     protected function shouldConfirmPassword($request){
         $confirmedAt = time() - $request->session()->get('rbac.otp_confirmed_at', 0);
         return $confirmedAt > $this->otpTimeout;
+    }
+
+    public function makeRequestOTPResponse($request){
+        $data['title'] = 'Confirm OTP';
+        $data['url'] = route('rbac.otp.confirm');
+        $data['email'] = Auth::user()->email;
+        $data['name'] = config('app.name');
+        return view(config('rbac.views.otp_confirm'), $data);
     }
 
 }

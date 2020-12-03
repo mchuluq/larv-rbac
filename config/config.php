@@ -26,8 +26,11 @@ return array(
     ],
 
     'otp_input_name' => 'otp_input',
-    'otp_timeout' => 10800,
+    'otp_timeout' => 300,
     'otp_failed_response' => 'Kode OTP tidak sesuai',
     'otp_enabled_success' => 'OTP telah diaktifkan',
     'otp_disabled_success' => 'OTP telah dimatikan',
+
+    'otp_session_identifier' => 'otp_session',
+    'otp_confirm_identifier' => 'otp_confirmed',
 );

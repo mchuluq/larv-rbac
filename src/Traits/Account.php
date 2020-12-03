@@ -88,9 +88,6 @@ trait Account{
         if ($response = $this->authenticated($request, $this->guard()->user())) {
             return $response;
         }
-        if($this->guard()->user()->otpEnabled()){
-            return redirect()->route('rbac.auth.otp');
-        }
         return $request->wantsJson() ? new Response('', 204) : redirect()->intended($this->redirectPath());
     }
 
@@ -100,10 +97,10 @@ trait Account{
         if (!$ga->verifyCode($this->guard()->user()->otp_secret, $request->input(config('rbac.otp_input_name')))) {
             return $this->sendFailedOtpResponse($request);
         }
-        $request->session()->put('rbac.auth_otp_confirmed_at', time());
+        $request->session()->put(config('rbac.otp_session_identifier'), time());
         return $request->wantsJson() ? new Response('', 204) : redirect()->intended($this->redirectPath());
     }
-
+    
     protected function authenticated(Request $request, $user){
         
     }

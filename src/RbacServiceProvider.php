@@ -5,9 +5,6 @@ namespace Mchuluq\Larv\Rbac;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 
-use Illuminate\Routing\Router;
-use Illuminate\Contracts\Http\Kernel\Kernel;
-
 class RbacServiceProvider extends ServiceProvider{
 
     public function register(){
@@ -15,7 +12,7 @@ class RbacServiceProvider extends ServiceProvider{
         $this->app->make('Mchuluq\Larv\Rbac\Controllers\AccountController');
     }
 
-    public function boot(Router $router, Kernel $kernel){
+    public function boot(){
         // register rbac-web for web guard
         Auth::extend('rbac-web', function ($app, $name, array $config) {
             $provider = $app['auth']->createUserProvider($config['provider'] ?? null);
@@ -55,22 +52,15 @@ class RbacServiceProvider extends ServiceProvider{
             ]);
         }
 
-        // $this->publishes([
-        //     // Config
-        //     __DIR__ . '/../config/config.php' => config_path('rbac.php'),
+        // package publishes
+        $this->publishes([
+            // Config
+            __DIR__ . '/../config/config.php' => config_path('rbac.php'),
+        ], 'larv-rbac');
 
-        //     // Fields
-        //     __DIR__ . '/../fields/groups.php' => app_path('Fields/groups.php'),
-        //     __DIR__ . '/../fields/roles.php' => app_path('Fields/roles.php'),
-        //     __DIR__ . '/../fields/users.php' => app_path('Fields/users.php'),
-        // ], 'larv-rbac');
-
+        // package routes
         if (config('rbac.route') == true) {
             require __DIR__ . '/Routes.php';
         }
-
-        // register middleware
-        $router->aliasMiddleware('rbac-permission', \Mchuluq\Larv\Rbac\Middlewares\HasPermission::class);
-        $router->aliasMiddleware('rbac-otp', \Mchuluq\Larv\Rbac\Middlewares\ConfirmOtp::class);
     }
 }
