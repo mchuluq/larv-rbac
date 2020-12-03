@@ -5,6 +5,9 @@ namespace Mchuluq\Larv\Rbac;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 
+use Illuminate\Routing\Router;
+use Illuminate\Contracts\Http\Kernel\Kernel;
+
 class RbacServiceProvider extends ServiceProvider{
 
     public function register(){
@@ -12,7 +15,7 @@ class RbacServiceProvider extends ServiceProvider{
         $this->app->make('Mchuluq\Larv\Rbac\Controllers\AccountController');
     }
 
-    public function boot(){
+    public function boot(Router $router, Kernel $kernel){
         // register rbac-web for web guard
         Auth::extend('rbac-web', function ($app, $name, array $config) {
             $provider = $app['auth']->createUserProvider($config['provider'] ?? null);
@@ -65,5 +68,9 @@ class RbacServiceProvider extends ServiceProvider{
         if (config('rbac.route') == true) {
             require __DIR__ . '/Routes.php';
         }
+
+        // register middleware
+        $router->aliasMiddleware('rbac-permission', \Mchuluq\Larv\Rbac\Middlewares\HasPermission::class);
+        $router->aliasMiddleware('rbac-otp', \Mchuluq\Larv\Rbac\Middlewares\ConfirmOtp::class);
     }
 }
