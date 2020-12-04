@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Contracts\Routing\UrlGenerator;
 
+use Illuminate\Http\Response;
+
 class ConfirmOtp{
     
     protected $responseFactory;
@@ -24,9 +26,10 @@ class ConfirmOtp{
 
     public function handle($request, Closure $next, $redirectToRoute = null){
         $user = Auth::user();
-        $ga = new GoogleAuthenticator();
-        if ($user->otpEnabled() && $this->shouldConfirmPassword($request)) {
+        if ($user->otpEnabled() && $this->shouldConfirmOtp($request)) {
+            $ga = new GoogleAuthenticator();
             if ($ga->verifyCode($user->otp_secret, $request->input(config('rbac.otp_input_name')))) {
+                $request->session()->put(config('rbac.otp_confirm_identifier'), time());
                 return $next($request);
             }
             return $this->makeRequestOTPResponse($request);
@@ -34,8 +37,8 @@ class ConfirmOtp{
         return $next($request);        
     }
 
-    protected function shouldConfirmPassword($request){
-        $confirmedAt = time() - $request->session()->get('rbac.otp_confirmed_at', 0);
+    protected function shouldConfirmOtp($request){
+        $confirmedAt = time() - $request->session()->get(config('rbac.otp_confirm_identifier'), 0);
         return $confirmedAt > $this->otpTimeout;
     }
 
@@ -44,7 +47,7 @@ class ConfirmOtp{
         $data['url'] = route('rbac.otp.confirm');
         $data['email'] = Auth::user()->email;
         $data['name'] = config('app.name');
-        return view(config('rbac.views.otp_confirm'), $data);
+        return new Response(view(config('rbac.views.otp_confirm'), $data),200);
     }
 
 }
