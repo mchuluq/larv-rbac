@@ -5,11 +5,20 @@ namespace Mchuluq\Larv\Rbac;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 
+use Illuminate\Support\Collection;
+
 class RbacServiceProvider extends ServiceProvider{
 
     public function register(){
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'rbac');
         $this->app->make('Mchuluq\Larv\Rbac\Controllers\AccountController');
+
+        // register macros
+        Collection::make(glob(__DIR__ . '/Macros/*.php'))->mapWithKeys(function ($path) {
+            return [$path => pathinfo($path, PATHINFO_FILENAME)];
+        })->each(function ($macro, $path) {
+            require_once $path;
+        });
     }
 
     public function boot(){
@@ -29,13 +38,6 @@ class RbacServiceProvider extends ServiceProvider{
             return $guard;
         });
 
-        // // register rbac-token for api token guard
-        // Auth::extend('rbac-token', function ($app, $name, array $config) {
-        //     $provider = $app['auth']->createUserProvider($config['provider'] ?? null);
-        //     $request = app('request');
-        //     return new TokenApiGuard($provider, $request, $config);
-        // });
-
         // provide user provider
         Auth::provider('rbac-user', function ($app, array $config) {
             return new \Mchuluq\Larv\Rbac\UserProvider($app['hash'], $config['model']);
@@ -46,9 +48,11 @@ class RbacServiceProvider extends ServiceProvider{
             $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
             include_once __DIR__ . '/../consoles/UserCommand.php';
+            include_once __DIR__ . '/../consoles/OtpCommand.php';
 
             $this->commands([
-                \Mchuluq\Larv\Rbac\Consoles\UserCommand::class
+                \Mchuluq\Larv\Rbac\Consoles\UserCommand::class,
+                \Mchuluq\Larv\Rbac\Consoles\OtpCommand::class,
             ]);
         }
 

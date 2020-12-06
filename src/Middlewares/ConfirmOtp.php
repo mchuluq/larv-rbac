@@ -9,18 +9,12 @@ use Closure;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Contracts\Routing\UrlGenerator;
-
 use Illuminate\Http\Response;
 
-class ConfirmOtp{
+class ConfirmOtp extends Authenticate{
     
-    protected $responseFactory;
-    protected $urlGenerator;
-    protected $otpTimeout;
-
     public function __construct(ResponseFactory $responseFactory, UrlGenerator $urlGenerator){
-        $this->responseFactory = $responseFactory;
-        $this->urlGenerator = $urlGenerator;
+        parent::__construct($responseFactory,$urlGenerator);
         $this->otpTimeout = config('rbac.otp_timeout') ?: 10800;
     }
 

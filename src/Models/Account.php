@@ -5,9 +5,15 @@ namespace Mchuluq\Larv\Rbac\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
+use Mchuluq\Larv\Rbac\Traits\HasPermission;
+use Mchuluq\Larv\Rbac\Traits\HasRole;
+
 // use Mchuluq\Larv\Rbac\Models\User as User
+// use Mchuluq\Larv\Rbac\Models\Group as Group
 
 class Account extends Model{
+
+    use HasPermission,HasRole;
 
     protected $fillable = [
         'user_id', 'group_id', 'active','accountable_id','accountable_type'
@@ -35,6 +41,10 @@ class Account extends Model{
 
     public function user(){
         return $this->belongsTo(User::class);
+    }
+    
+    public function group(){
+        return $this->belongsTo(Group::class);
     }
 
     public function accountable(){

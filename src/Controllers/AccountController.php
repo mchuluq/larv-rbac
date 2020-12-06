@@ -91,16 +91,10 @@ class AccountController extends Controller{
             Auth::user()->update(['account_id' => null]);
             return view(config('rbac.views.account'), $data);
         }else{
-            $account = Auth::user()->accounts()
-            // ->with('accountable')->whereHas('accountable')
-            ->where(['id' => $account_id, 'active' => true])->first();
-            if (!$account) {
+            $build = Auth::buildSession($account_id,$default);
+            if(!$build){
                 abort(404);
             }
-            if($default == 'default'){
-                Auth::user()->update(['account_id' => $account_id]);
-            }
-            $req->session()->put('rbac.account', $account->toArray());
             return $req->wantsJson() ? new Response('', 204) : redirect()->intended(config('rbac.authenticated_redirect_uri'));
         }
     }

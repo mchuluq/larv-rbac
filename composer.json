@@ -18,6 +18,9 @@
             "role": "Developer"
         }
     ],
+    "require": {
+        "kalnoy/nestedset": "^5.0"
+    },
     "require-dev": {
         "mockery/mockery": "~1.0"
     },
@@ -34,7 +37,5 @@
         }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true,
-    "require": {
-    }
+    "prefer-stable": true
 }
