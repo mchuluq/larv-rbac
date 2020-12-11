@@ -18,6 +18,9 @@
             "role": "Developer"
         }
     ],
+    "require": {
+        "kalnoy/nestedset": "^5.0"
+    },
     "require-dev": {
         "mockery/mockery": "~1.0"
     },

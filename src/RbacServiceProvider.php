@@ -5,18 +5,27 @@ namespace Mchuluq\Larv\Rbac;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 
+use Illuminate\Support\Collection;
+
 class RbacServiceProvider extends ServiceProvider{
 
     public function register(){
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'rbac');
         $this->app->make('Mchuluq\Larv\Rbac\Controllers\AccountController');
+
+        // register macros
+        Collection::make(glob(__DIR__ . '/Macros/*.php'))->mapWithKeys(function ($path) {
+            return [$path => pathinfo($path, PATHINFO_FILENAME)];
+        })->each(function ($macro, $path) {
+            require_once $path;
+        });
     }
 
     public function boot(){
         // register rbac-web for web guard
         Auth::extend('rbac-web', function ($app, $name, array $config) {
             $provider = $app['auth']->createUserProvider($config['provider'] ?? null);
-            $guard = new \Mchuluq\Larv\Rbac\SessionGuard($name, $provider, $app['session.store'], request(), $config['expire'] ?? null);
+            $guard = new \Mchuluq\Larv\Rbac\Guards\SessionGuard($name, $provider, $app['session.store'], request(), $config['expire'] ?? null);
             if (method_exists($guard, 'setCookieJar')) {
                 $guard->setCookieJar($app['cookie']);
             }
@@ -29,13 +38,6 @@ class RbacServiceProvider extends ServiceProvider{
             return $guard;
         });
 
-        // // register rbac-token for api token guard
-        // Auth::extend('rbac-token', function ($app, $name, array $config) {
-        //     $provider = $app['auth']->createUserProvider($config['provider'] ?? null);
-        //     $request = app('request');
-        //     return new TokenApiGuard($provider, $request, $config);
-        // });
-
         // provide user provider
         Auth::provider('rbac-user', function ($app, array $config) {
             return new \Mchuluq\Larv\Rbac\UserProvider($app['hash'], $config['model']);
@@ -46,22 +48,21 @@ class RbacServiceProvider extends ServiceProvider{
             $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
             include_once __DIR__ . '/../consoles/UserCommand.php';
+            include_once __DIR__ . '/../consoles/OtpCommand.php';
 
             $this->commands([
-                \Mchuluq\Larv\Rbac\Consoles\UserCommand::class
+                \Mchuluq\Larv\Rbac\Consoles\UserCommand::class,
+                \Mchuluq\Larv\Rbac\Consoles\OtpCommand::class,
             ]);
         }
 
-        // $this->publishes([
-        //     // Config
-        //     __DIR__ . '/../config/config.php' => config_path('rbac.php'),
+        // package publishes
+        $this->publishes([
+            // Config
+            __DIR__ . '/../config/config.php' => config_path('rbac.php'),
+        ], 'larv-rbac');
 
-        //     // Fields
-        //     __DIR__ . '/../fields/groups.php' => app_path('Fields/groups.php'),
-        //     __DIR__ . '/../fields/roles.php' => app_path('Fields/roles.php'),
-        //     __DIR__ . '/../fields/users.php' => app_path('Fields/users.php'),
-        // ], 'larv-rbac');
-
+        // package routes
         if (config('rbac.route') == true) {
             require __DIR__ . '/Routes.php';
         }

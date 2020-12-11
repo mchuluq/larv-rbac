@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
+use Kalnoy\Nestedset\NestedSet;
+
 class BuildRbacTables extends Migration{
 
     public function up(){
@@ -36,12 +38,12 @@ class BuildRbacTables extends Migration{
         });
         
         Schema::create('menus', function (Blueprint $table) {
-            $table->string('id',64)->primary()->comment('name slug');
-            $table->string('route',255)->nullable();
+            $table->id();
+            $table->string('route',255)->unique()->nullable();
             $table->string('label',64);
             $table->string('html_attr',255)->nullable();
             $table->string('icon',64)->nullable();
-            $table->string('parent',64)->nullable();
+            NestedSet::columns($table);
             $table->string('position',64)->comment('e.g : header, sidebar, footer, etc');
             $table->boolean('is_visible')->default(true);
             $table->boolean('quick_access')->default(true);
@@ -60,7 +62,7 @@ class BuildRbacTables extends Migration{
         });
         
         Schema::create('permissions', function (Blueprint $table) {
-            $table->string('menu_id', 64);
+            $table->string('route', 64);
             $table->string('group_id', 64)->nullable();
             $table->string('role_id', 64)->nullable();
             $table->string('account_id',255)->nullable();
@@ -81,13 +83,25 @@ class BuildRbacTables extends Migration{
 
             $table->engine = 'InnoDB';
         });
+        
+        Schema::create('data_accesses', function (Blueprint $table) {
+            $table->string('data_type');
+            $table->string('data_id', 64);
+
+            $table->string('group_id', 64)->nullable();
+            $table->string('role_id', 64)->nullable();
+            $table->string('account_id', 255)->nullable();
+
+            $table->engine = 'InnoDB';
+        });
 
         Schema::table('users', function (Blueprint $table) {
             $table->string('username',64)->after('email')->unique()->nullable();
             $table->string('phone',20)->after('username')->unique()->nullable();
             $table->text('avatar_url')->after('phone')->nullable();
-            $table->boolean('active')->default(true);
-            $table->string('account_id',36)->nullable()->comment('active account');
+            $table->boolean('active')->default(true)->after('avatar_url');
+            $table->string('account_id',36)->nullable()->after('active')->comment('active account');
+            $table->text('otp_secret')->nullable()->after('account_id');
         });
     }
 
@@ -98,10 +112,11 @@ class BuildRbacTables extends Migration{
         Schema::dropIfExists('menus');
         Schema::dropIfExists('role_actors');
         Schema::dropIfExists('permissions');
+        Schema::dropIfExists('data_accesses');
         Schema::dropIfExists('remember_tokens');
         
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['avatar_url','account_id','phone','active','username']);
+            $table->dropColumn(['avatar_url','account_id','phone','active','username','otp_sceret']);
         });
     }
 }

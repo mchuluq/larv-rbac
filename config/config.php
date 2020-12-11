@@ -14,7 +14,9 @@ return array(
         'email' => 'auth.passwords.email',
         'reset' => 'auth.passwords.reset',
         'confirm' => 'auth.passwords.confirm',
-        'account' => 'auth.account'
+        'account' => 'auth.account',
+        'otp_register' => 'auth.otp.register',
+        'otp_confirm' => 'auth.otp.confirm',
     ],
 
     'gravatar_options' => [
@@ -22,4 +24,13 @@ return array(
         'd' => 'retro',
         'r' => 'g',
     ],
+
+    'otp_input_name' => 'otp_input',
+    'otp_timeout' => 300,
+    'otp_failed_response' => 'Kode OTP tidak sesuai',
+    'otp_enabled_success' => 'OTP telah diaktifkan',
+    'otp_disabled_success' => 'OTP telah dimatikan',
+
+    'otp_session_identifier' => 'otp_session',
+    'otp_confirm_identifier' => 'otp_confirmed',
 );

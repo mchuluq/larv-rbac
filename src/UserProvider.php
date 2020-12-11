@@ -17,7 +17,7 @@ class UserProvider extends BaseUserProvider{
      * @return \Illuminate\Contracts\Auth\Authenticatable|null
      */
     public function retrieveByToken($identifier, $token){
-        if (!$model = $this->getModelByIdentifier($identifier)) {
+        if (!$model = $this->getModelById($identifier)) {
             return null;
         }
         $rememberTokens = $model->rememberTokens()->where('expires_at', '>', Carbon::now())->get();
@@ -36,7 +36,7 @@ class UserProvider extends BaseUserProvider{
      * @return void
      */
     public function addRememberToken($identifier, $value, $expire){
-        $model = $this->getModelByIdentifier($identifier);
+        $model = $this->getModelById($identifier);
         if ($model) {
             $model->rememberTokens()->create([
                 'token' => $value,
@@ -111,9 +111,7 @@ class UserProvider extends BaseUserProvider{
      */
     protected function getModelById($identifier){
         $model = $this->createModel();
-        $test = $model->where([$model->getAuthIdentifierName()=>$identifier,'active'=>true])->first();
-        dd($test);
-        return $test;
+        return $model->where([$model->getAuthIdentifierName()=>$identifier,'active'=>true])->first();
     }
 
     public function retrieveByCredentials(array $credentials){

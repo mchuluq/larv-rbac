@@ -1,6 +1,12 @@
 <?php
 
-namespace Mchuluq\Larv\Rbac;
+namespace Mchuluq\Larv\Rbac\Guards;
+
+use Mchuluq\Larv\Rbac\Models\Permission;
+use Mchuluq\Larv\Rbac\Models\DataAccess;
+use Mchuluq\Larv\Rbac\Models\RoleActor;
+
+use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Str;
 use Illuminate\Contracts\Session\Session;
@@ -197,5 +203,63 @@ class SessionGuard extends BaseGuard{
      */
     protected function createRecaller($value){
         return $this->getCookieJar()->make($this->getRecallerName(), $value, $this->expire);
+    }
+
+    public function buildSession($account_id,$default=null){
+        session()->regenerate();
+        $user = $this->user();
+        $account = $user->accounts()
+        // ->with('accountable')->whereHas('accountable')
+        ->where(['id' => $account_id, 'active' => true])->first();
+        if (!$account) {
+            return false;
+        }
+        if ($default) {
+            $user->update(['account_id' => $account_id]);
+        }
+        $account->getRoles()->getPermissions();
+       
+        $data = array(
+            'account' => $account->toArray(),
+            'user' => $user->toArray(),
+            'permissions' => $this->getPermissions($account->id, $account->group_id),
+            'data_access' => $this->getDataAccess($account->id, $account->group_id),
+        );
+        session()->put('rbac', $data);
+        return true;
+    }
+
+    function getPermissions($account_id, $group_id){
+        $tperm = with(new Permission)->getTable();
+        $troleact = with(new RoleActor)->getTable();
+
+        $result = [];
+        $res = DB::table($tperm . " AS a")->select("a.route AS route")
+        ->where("a.account_id", $account_id)
+            ->orWhere("a.group_id", $group_id)
+            ->orWhereRaw("(a.role_id IN (SELECT c.role_id FROM " . $troleact . " c WHERE (c.account_id = ?)))", [$account_id])
+            ->orWhereRaw("(a.role_id IN (SELECT c.role_id FROM " . $troleact . " c WHERE (c.group_id = ?)))", [$group_id])
+            ->groupBy('a.route')->get()->toArray();
+        foreach ($res as $r) {
+            $result[] = $r->route;
+        }
+        return $result;
+    }
+    
+    function getDataAccess($account_id, $group_id){
+        $tda = with(new DataAccess)->getTable();
+        $troleact = with(new RoleActor)->getTable();
+
+        $result = [];
+        $res = DB::table($tda . " AS a")->select("a.data_type","a.data_id")
+        ->where("a.account_id", $account_id)
+            ->orWhere("a.group_id", $group_id)
+            ->orWhereRaw("(a.role_id IN (SELECT c.role_id FROM " . $troleact . " c WHERE (c.account_id = ?)))", [$account_id])
+            ->orWhereRaw("(a.role_id IN (SELECT c.role_id FROM " . $troleact . " c WHERE (c.group_id = ?)))", [$group_id])
+            ->groupBy('a.data_id','a.data_type')->get()->toArray();
+        foreach ($res as $r) {
+            $result[$r->data_type] = $r->data_id;
+        }
+        return $result;
     }
 }
