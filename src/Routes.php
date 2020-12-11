@@ -13,7 +13,9 @@ Route::group(['middleware' => 'web'], function () {
     Route::match(['post'], '/password/reset', 'Mchuluq\Larv\Rbac\Controllers\AccountController@passwordReset')->name('rbac.password.update');
     Route::match(['get', 'post'], 'password/confirm', 'Mchuluq\Larv\Rbac\Controllers\AccountController@passwordConfirm')->name('rbac.password.confirm');
     
-    Route::match(['get'], 'account/{account_id?}/{default?}', 'Mchuluq\Larv\Rbac\Controllers\AccountController@accountSwitch')->name('rbac.account.switch')->middleware(\Mchuluq\Larv\Rbac\Middlewares\Authenticate::class);
+    Route::match(['get'], 'account/{account_id?}/{default?}', 'Mchuluq\Larv\Rbac\Controllers\AccountController@accountSwitch')->name('rbac.account.switch')->middleware(\Mchuluq\Larv\Rbac\Middlewares\Authenticate::with([
+        'checkAccount' => false
+    ]));
     
     Route::match(['get','post'], 'otp/register', 'Mchuluq\Larv\Rbac\Controllers\AccountController@otpRegister')->name('rbac.otp.register')->middleware(\Mchuluq\Larv\Rbac\Middlewares\Authenticate::class);
     Route::match(['get','post'], 'otp/confirm', function(){

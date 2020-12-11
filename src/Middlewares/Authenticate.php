@@ -7,23 +7,19 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Contracts\Routing\UrlGenerator;
 
+use Mchuluq\Larv\Rbac\Traits\HasParameters;
+
 class Authenticate {
 
-    protected $responseFactory;
-    protected $urlGenerator;
-    protected $otpTimeout;
+    use HasParameters;
 
-    public function __construct(ResponseFactory $responseFactory, UrlGenerator $urlGenerator){
-        $this->responseFactory = $responseFactory;
-        $this->urlGenerator = $urlGenerator;
-        $this->otpTimeout = config('rbac.otp_timeout') ?: 10800;
-    }
-
-    public function handle($request, Closure $next, $param=null){
+    public function handle($request, Closure $next, $checkAccount=true){
         if (!Auth::check()) {
             return redirect(config('rbac.unauthenticated_redirect_uri'))->with('message', 'You need to login first');
         }elseif (Auth::user()->otpEnabled() && !$request->session()->has(config('rbac.otp_session_identifier'))) {
             return redirect()->route('rbac.auth.otp')->with('message', 'You need to confirm OTP first');
+        } elseif (!$request->session()->has('rbac.account') && $checkAccount == true) {
+            return redirect()->route('rbac.account.switch')->with('message', 'You need to select an Account');
         }
         return $next($request);
     }
@@ -41,5 +37,4 @@ class Authenticate {
             return abort(401, 'You are not authorized to access this resource.');
         }
     }
-
 }

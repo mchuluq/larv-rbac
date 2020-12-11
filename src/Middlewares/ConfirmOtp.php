@@ -11,10 +11,19 @@ use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Http\Response;
 
-class ConfirmOtp extends Authenticate{
-    
+use Mchuluq\Larv\Rbac\Traits\HasParameters;
+
+class ConfirmOtp{
+
+    use HasParameters;
+
+    protected $responseFactory;
+    protected $urlGenerator;
+    protected $otpTimeout;
+
     public function __construct(ResponseFactory $responseFactory, UrlGenerator $urlGenerator){
-        parent::__construct($responseFactory,$urlGenerator);
+        $this->responseFactory = $responseFactory;
+        $this->urlGenerator = $urlGenerator;
         $this->otpTimeout = config('rbac.otp_timeout') ?: 10800;
     }
 

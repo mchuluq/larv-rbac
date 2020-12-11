@@ -3,10 +3,13 @@
 namespace Mchuluq\Larv\Rbac\Middlewares;
 
 use Mchuluq\Larv\Rbac\Models\Group;
+use Mchuluq\Larv\Rbac\Traits\HasParameters;
 
 use Closure;
 
-class CheckRole extends Authenticate{
+class CheckRole{
+    
+    use HasParameters;
 
     public function handle($request, Closure $next,$role=null){
         $roles = $request->session()->get('rbac.user.roles',[]);
@@ -24,5 +27,19 @@ class CheckRole extends Authenticate{
             }            
         }
         return $this->setAbortResponse($request);
+    }
+
+    function setAbortResponse($request){
+        if ($request->isJson() || $request->wantsJson()) {
+            return response()->json([
+                'error' => [
+                    'status_code' => 401,
+                    'code'        => 'INSUFFICIENT_ROLE',
+                    'message' => 'You are not in authorized role to access this resource.'
+                ],
+            ], 401);
+        } else {
+            return abort(401, 'You are not in authorized role to access this resource.');
+        }
     }
 }
