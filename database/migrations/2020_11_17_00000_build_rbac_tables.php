@@ -102,6 +102,7 @@ class BuildRbacTables extends Migration{
             $table->boolean('active')->default(true)->after('avatar_url');
             $table->string('account_id',36)->nullable()->after('active')->comment('active account');
             $table->text('otp_secret')->nullable()->after('account_id');
+            $table->longText('settings')->nullable()->after('otp_secret');
         });
     }
 
@@ -116,7 +117,7 @@ class BuildRbacTables extends Migration{
         Schema::dropIfExists('remember_tokens');
         
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['avatar_url','account_id','phone','active','username','otp_sceret']);
+            $table->dropColumn(['username','phone','avatar_url','active','account_id','otp_secret','settings']);
         });
     }
 }
