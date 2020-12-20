@@ -218,8 +218,9 @@ class SessionGuard extends BaseGuard{
             $user->update(['account_id' => $account_id]);
         }
         $account->getRoles()->getPermissions();
-       
+        $recaller = $this->recaller();
         $data = array(
+            'via_remember' => ($recaller) ? true : false,
             'account' => $account->toArray(),
             'user' => $user->toArray(),
             'permissions' => $this->getPermissions($account->id, $account->group_id),

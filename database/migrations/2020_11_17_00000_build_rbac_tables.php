@@ -57,7 +57,6 @@ class BuildRbacTables extends Migration{
             $table->string('role_id', 64);
             $table->string('group_id', 64)->nullable();
             $table->string('account_id',255)->nullable();
-
             $table->engine = 'InnoDB';
         });
         
@@ -74,20 +73,18 @@ class BuildRbacTables extends Migration{
             $table->increments('id');
             $table->string('token', 100);
             $table->string('user_id',36);
-            $table->timestamps();
             $table->dateTime('expires_at');
-            $table->text('user_agent');
-            $table->string('ip_address',40);
-
+            $table->text('user_agent')->nullable();;
+            $table->string('ip_address', 40)->nullable();;
+            $table->timestamps();
+            
             $table->unique(['token', 'user_id']);
-
             $table->engine = 'InnoDB';
         });
         
         Schema::create('data_accesses', function (Blueprint $table) {
             $table->string('data_type');
             $table->string('data_id', 64);
-
             $table->string('group_id', 64)->nullable();
             $table->string('role_id', 64)->nullable();
             $table->string('account_id', 255)->nullable();
