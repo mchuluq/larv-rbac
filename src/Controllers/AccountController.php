@@ -82,16 +82,15 @@ class AccountController extends Controller{
         }
     }
 
-    function accountSwitch(Request $req,$account_id=null,$default=null){
+    function accountSwitch(Request $req,$account_id=null){
         if(!$account_id){
             $data['user'] = Auth::user();
             $data['accounts'] = Auth::user()->accounts()
             // ->with('accountable')->whereHas('accountable')
             ->where('active', true)->get();
-            Auth::user()->update(['account_id' => null]);
             return view(config('rbac.views.account'), $data);
         }else{
-            $build = Auth::buildSession($account_id,$default);
+            $build = Auth::buildSession($account_id);
             if(!$build){
                 abort(404);
             }

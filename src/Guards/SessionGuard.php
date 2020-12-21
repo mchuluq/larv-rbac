@@ -67,6 +67,7 @@ class SessionGuard extends BaseGuard{
             if ($this->user) {
                 $this->replaceRememberToken($this->user, $recaller->token());
                 $this->updateSession($this->user->getAuthIdentifier());
+                $this->buildSession($this->user->account_id);
                 $this->fireLoginEvent($this->user, true);
             }
         }
@@ -87,6 +88,7 @@ class SessionGuard extends BaseGuard{
      */
     public function login(AuthenticatableContract $user, $remember = false){
         $this->updateSession($user->getAuthIdentifier());
+        $this->buildSession($user->account_id);
         
         // If the user should be permanently "remembered" by the application we will
         // queue a permanent cookie that contains the encrypted copy of the user
@@ -205,8 +207,7 @@ class SessionGuard extends BaseGuard{
         return $this->getCookieJar()->make($this->getRecallerName(), $value, $this->expire);
     }
 
-    public function buildSession($account_id,$default=null){
-        session()->regenerate();
+    public function buildSession($account_id){
         $user = $this->user();
         $account = $user->accounts()
         // ->with('accountable')->whereHas('accountable')
@@ -214,9 +215,7 @@ class SessionGuard extends BaseGuard{
         if (!$account) {
             return false;
         }
-        if ($default) {
-            $user->update(['account_id' => $account_id]);
-        }
+        $user->update(['account_id' => $account_id]);
         $account->getRoles()->getPermissions();
         $recaller = $this->recaller();
         $data = array(

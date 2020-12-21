@@ -35,7 +35,6 @@ class Account extends Model{
         });
         static::retrieved(function($model){
             $model->url = route('rbac.account.switch', ['account_id' => $model->id]);
-            $model->default_url = route('rbac.account.switch', ['account_id' => $model->id,'default'=>'default']);
         });
     }
 
