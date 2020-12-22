@@ -93,10 +93,10 @@ class BuildRbacTables extends Migration{
         });
 
         Schema::table('users', function (Blueprint $table) {
-            $table->string('username',64)->after('email')->unique()->nullable();
+            $table->string('username',64)->after('email')->unique();
             $table->string('phone',20)->after('username')->unique()->nullable();
             $table->text('avatar_url')->after('phone')->nullable();
-            $table->boolean('active')->default(true)->after('avatar_url');
+            $table->boolean('active')->default(true)->after('remember_token');
             $table->string('account_id',36)->nullable()->after('active')->comment('active account');
             $table->text('otp_secret')->nullable()->after('account_id');
             $table->longText('settings')->nullable()->after('otp_secret');
