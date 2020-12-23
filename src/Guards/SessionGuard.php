@@ -102,7 +102,6 @@ class SessionGuard extends BaseGuard{
         // any listeners will hook into the authentication events and run actions
         // based on the login and logout events fired from the guard instances.
         $this->fireLoginEvent($user, $remember);
-
         $this->setUser($user);
     }
 
@@ -261,5 +260,10 @@ class SessionGuard extends BaseGuard{
             $result[$r->data_type] = $r->data_id;
         }
         return $result;
+    }
+
+    function hasPermission($route){
+        $permissions = session()->get('rbac.permissions',[]);
+        return in_array($permissions,$route);
     }
 }

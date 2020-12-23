@@ -18,6 +18,8 @@ use Illuminate\Auth\Events\Lockout;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Support\Facades\Lang;
 
+use Carbon\Carbon;
+
 trait Account{
 
     public function credentials(Request $req, $type = 'login'){
@@ -102,7 +104,10 @@ trait Account{
     }
     
     protected function authenticated(Request $request, $user){
-        
+        $user->update([
+            'last_login_at' => Carbon::now()->timestamp,
+            'last_login_ip' => $request->getClientIp()
+        ]);
     }
 
     protected function sendFailedLoginResponse(Request $request){

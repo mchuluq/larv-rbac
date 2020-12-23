@@ -45,8 +45,6 @@ class RbacServiceProvider extends ServiceProvider{
 
         // load migration and command
         if ($this->app->runningInConsole()) {
-            $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
-
             include_once __DIR__ . '/../consoles/UserCommand.php';
             include_once __DIR__ . '/../consoles/OtpCommand.php';
 
@@ -60,6 +58,8 @@ class RbacServiceProvider extends ServiceProvider{
         $this->publishes([
             // Config
             __DIR__ . '/../config/config.php' => config_path('rbac.php'),
+            // migration
+            __DIR__ . '/../database/migrations/create_rbac_tables.php.stub' => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_rbac_tables.php'),
         ], 'larv-rbac');
 
         // package routes

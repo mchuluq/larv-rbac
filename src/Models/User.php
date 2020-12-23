@@ -39,7 +39,11 @@ class User extends Authenticatable{
     }
 
     public function setPasswordAttribute($string=null){
-        $this->attributes['password'] = Hash::make($string);
+        if(!empty($string)){
+            $this->attributes['password'] = Hash::make($string);
+        }else{
+            unset($this->attributes['password']);
+        }
     }
 
     public function setAvatarUrlAttribute($value){
