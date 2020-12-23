@@ -6,7 +6,7 @@ use Illuminate\Database\Migrations\Migration;
 
 use Kalnoy\Nestedset\NestedSet;
 
-class BuildRbacTables extends Migration{
+class CreateRbacTables extends Migration{
 
     public function up(){
         Schema::create('accounts', function (Blueprint $table) {
@@ -116,7 +116,7 @@ class BuildRbacTables extends Migration{
         Schema::dropIfExists('remember_tokens');
         
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['username','phone','avatar_url','active','account_id','otp_secret','settings']);
+            $table->dropColumn(['username','phone','avatar_url','active','account_id','otp_secret','settings','last_login_ip','last_login_at']);
         });
     }
 }
