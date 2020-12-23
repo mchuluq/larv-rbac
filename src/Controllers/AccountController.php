@@ -47,7 +47,7 @@ class AccountController extends Controller{
             return $this->attemptOtp($req);
         } else {
             $data['title'] = 'Confirm OTP';
-            $data['url'] = route('rbac.auth.otp');
+            $data['url'] = route('auth.otp');
             $data['email'] = $this->guard()->user()->email;
             $data['name'] = config('app.name');
             return view(config('rbac.views.otp_confirm'), $data);

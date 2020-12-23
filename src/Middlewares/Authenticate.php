@@ -17,7 +17,7 @@ class Authenticate {
         if (!Auth::check()) {
             return redirect(config('rbac.unauthenticated_redirect_uri'))->with('message', 'You need to login first');
         }elseif (Auth::user()->otpEnabled() && !$request->session()->has(config('rbac.otp_session_identifier'))) {
-            return redirect()->route('rbac.auth.otp')->with('message', 'You need to confirm OTP first');
+            return redirect()->route('auth.otp')->with('message', 'You need to confirm OTP first');
         } elseif (!$request->session()->has('rbac.account') && $checkAccount == true) {
             return redirect()->route('rbac.account.switch')->with('message', 'You need to select an Account');
         }
