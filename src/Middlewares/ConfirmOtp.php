@@ -46,7 +46,7 @@ class ConfirmOtp{
     }
 
     public function makeRequestOTPResponse($request){
-        $data['title'] = 'Confirm OTP';
+        $data['title'] = 'Konfirmasi OTP';
         $data['url'] = route('rbac.otp.confirm');
         $data['email'] = Auth::user()->email;
         $data['name'] = config('app.name');

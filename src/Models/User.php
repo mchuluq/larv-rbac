@@ -17,7 +17,7 @@ class User extends Authenticatable{
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'name', 'email', 'username', 'phone', 'avatar_url','email_verified_at','password','active','account_id','otp_secret','secret'
+        'name', 'email', 'username', 'phone', 'avatar_url','email_verified_at','password','active','account_id','otp_secret','secret','last_login_ip','last_login_at'
     ];
     
     use BaseAuthenticatable;

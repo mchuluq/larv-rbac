@@ -5,7 +5,7 @@ namespace Mchuluq\Larv\Rbac\Controllers;
 use Mchuluq\Larv\Rbac\Traits\Account;
 use Mchuluq\Larv\Rbac\Authenticators\GoogleAuthenticator;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -15,70 +15,15 @@ class AccountController extends Controller{
 
     use Account;
 
-    function doLogin(Request $req){
-        if ($this->hasTooManyLoginAttempts($req)) {
-            if ($req->isJson() || $req->wantsJson()) {
-                return response()->json([
-                    'error' => [
-                        'status_code' => Response::HTTP_TOO_MANY_REQUESTS,
-                        'code'        => 'TOO_MANY_REQUEST',
-                        'message' => 'Too many login attempts. Please try again later.'
-                    ],
-                ], Response::HTTP_TOO_MANY_REQUESTS);
-            } else {
-                return abort(Response::HTTP_TOO_MANY_REQUESTS, 'Too many login attempts. Please try again later.');
-            }
-        } else {
-            if ($req->isMethod('post')) {
-                return $this->login($req);
-            } else {
-                $data['title'] = 'Login';
-                return view(config('rbac.views.login'), $data);
-            }
-        }
-    }
-
-    function doLogout(Request $req){
-        return $this->logout($req);
-    }
-
     function doOtp(Request $req){
         if ($req->isMethod('post')) {
             return $this->attemptOtp($req);
         } else {
-            $data['title'] = 'Confirm OTP';
+            $data['title'] = 'Konfirmasi OTP';
             $data['url'] = route('auth.otp');
             $data['email'] = $this->guard()->user()->email;
             $data['name'] = config('app.name');
             return view(config('rbac.views.otp_confirm'), $data);
-        }
-    }
-
-    function passwordForgot(Request $req){
-        if ($req->isMethod('post')) {
-            return $this->sendResetLinkEmail($req);
-        } else {
-            $data['title'] = 'Forgot password';
-            return view(config('rbac.views.email'), $data);
-        }
-    }
-
-    function passwordReset(Request $req, $token = null){
-        if ($req->isMethod('post')) {
-            return $this->reset($req);
-        } else {
-            $data['title'] = 'Forgot password';
-            return view(config('rbac.views.reset'), $data)->with(
-                ['token' => $token, 'email' => $req->email]
-            );
-        }
-    }
-
-    function passwordConfirm(Request $req){
-        if ($req->isMethod('post')) {
-            return $this->confirm($req);
-        } else {
-            return view(config('rbac.views.confirm'));
         }
     }
 
