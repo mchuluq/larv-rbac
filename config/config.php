@@ -1,7 +1,7 @@
 <?php
 
 return array(
-    'unauthenticated_redirect_uri' => '/auth/login',
+    'unauthenticated_redirect_uri' => '/login',
     'authenticated_redirect_uri' => '/home',
 
     'route' => true,
