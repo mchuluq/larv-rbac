@@ -6,12 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 use Mchuluq\Larv\Rbac\Traits\HasPermission;
+use Mchuluq\Larv\Rbac\Traits\HasDataAccess;
 
 // use Mchuluq\Larv\Rbac\Models\Account as Account
 
 class Role extends Model{
 
-    use HasPermission;
+    use HasPermission,HasDataAccess;
 
     public $incrementing = false;
     protected $keyType = 'string';

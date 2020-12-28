@@ -7,12 +7,13 @@ use Illuminate\Support\Str;
 
 use Mchuluq\Larv\Rbac\Traits\HasPermission;
 use Mchuluq\Larv\Rbac\Traits\HasRole;
+use Mchuluq\Larv\Rbac\Traits\HasDataAccess;
 
 // use Mchuluq\Larv\Rbac\Models\Account as Account
 
 class Group extends Model{
 
-    use HasRole,HasPermission;
+    use HasRole,HasPermission,HasDataAccess;
 
     public $incrementing = false;
     protected $keyType = 'string';

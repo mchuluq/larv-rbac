@@ -87,7 +87,7 @@ class CreateRbacTables extends Migration{
             $table->string('data_id', 64);
             $table->string('group_id', 64)->nullable();
             $table->string('role_id', 64)->nullable();
-            $table->string('account_id', 255)->nullable();
+            $table->string('account_id', 64)->nullable();
 
             $table->engine = 'InnoDB';
         });
