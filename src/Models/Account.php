@@ -34,9 +34,6 @@ class Account extends Model{
         static::creating(function ($model) {
             $model->id = (string) Str::uuid();
         });
-        static::retrieved(function($model){
-            $model->url = route('rbac.account.switch', ['account_id' => $model->id]);
-        });
     }
 
     public function user(){

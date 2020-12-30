@@ -5,6 +5,7 @@ namespace Mchuluq\Larv\Rbac\Guards;
 use Mchuluq\Larv\Rbac\Models\Permission;
 use Mchuluq\Larv\Rbac\Models\DataAccess;
 use Mchuluq\Larv\Rbac\Models\RoleActor;
+use Mchuluq\Larv\Rbac\Models\Menu;
 
 use Illuminate\Support\Facades\DB;
 
@@ -224,6 +225,7 @@ class SessionGuard extends BaseGuard{
             'permissions' => $this->getPermissions($account->id, $account->group_id),
             'data_access' => $this->getDataAccess($account->id, $account->group_id),
         );
+        $data['menu'] = $this->buildMenuTree($data['permissions']);
         session()->put('rbac', $data);
         return true;
     }
@@ -238,7 +240,7 @@ class SessionGuard extends BaseGuard{
             ->orWhere("a.group_id", $group_id)
             ->orWhereRaw("(a.role_id IN (SELECT c.role_id FROM " . $troleact . " c WHERE (c.account_id = ?)))", [$account_id])
             ->orWhereRaw("(a.role_id IN (SELECT c.role_id FROM " . $troleact . " c WHERE (c.group_id = ?)))", [$group_id])
-            ->groupBy('a.route')->get()->toArray();
+            ->groupBy('a.route')->get();
         foreach ($res as $r) {
             $result[] = $r->route;
         }
@@ -255,15 +257,35 @@ class SessionGuard extends BaseGuard{
             ->orWhere("a.group_id", $group_id)
             ->orWhereRaw("(a.role_id IN (SELECT c.role_id FROM " . $troleact . " c WHERE (c.account_id = ?)))", [$account_id])
             ->orWhereRaw("(a.role_id IN (SELECT c.role_id FROM " . $troleact . " c WHERE (c.group_id = ?)))", [$group_id])
-            ->groupBy('a.data_id','a.data_type')->get()->toArray();
+            ->groupBy('a.data_id','a.data_type')->get();
         foreach ($res as $r) {
             $result[$r->data_type] = $r->data_id;
         }
         return $result;
     }
 
+    protected function buildMenuTree($access_list){
+        $get = Menu::whereIn('route',$access_list)->orWhereNull('route')->whereHas('children')->orderBy('display_order','asc')->get()->toTree()->toArray();
+        $menu = [];
+        foreach($get as $row){
+            $menu[$row['position']][] = $row;
+        }
+        return $menu;
+    }
+
     function hasPermission($route){
         $permissions = session()->get('rbac.permissions',[]);
         return in_array($permissions,$route);
+    }
+
+    function getMenu($position=null){
+        $menus = session()->get('rbac.menu',[]);
+        if(!$position){
+            return $menus;
+        }elseif(isset($menus[$position])){
+            return $menus[$position];
+        }else{
+            return [];
+        }
     }
 }
