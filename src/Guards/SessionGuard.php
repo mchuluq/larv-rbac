@@ -265,7 +265,7 @@ class SessionGuard extends BaseGuard{
     }
 
     protected function buildMenuTree($access_list){
-        $get = Menu::whereIn('route',$access_list)->orWhereNull('route')->whereHas('children')->orderBy('display_order','asc')->get()->toTree()->toArray();
+        $get = Menu::where('is_visible',true)->whereIn('route',$access_list)->orWhereNull('route')->whereHas('children')->orderBy('display_order','asc')->get()->toTree()->toArray();
         $menu = [];
         foreach($get as $row){
             $menu[$row['position']][] = $row;
