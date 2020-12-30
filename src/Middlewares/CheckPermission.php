@@ -15,7 +15,7 @@ class CheckPermission{
         $permissions = $request->session()->get('rbac.permissions',[]);
         if (!$route || !$permissions) {
             return $this->setAbortResponse($request);
-        } elseif (in_array($permissions,$route)) {
+        } elseif (in_array($route,$permissions)) {
             return $next($request);
         } else {
             return $this->setAbortResponse($request);

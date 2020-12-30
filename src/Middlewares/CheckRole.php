@@ -15,14 +15,14 @@ class CheckRole{
         $roles = $request->session()->get('rbac.user.roles',[]);
         if (!$roles) {
             return $this->setAbortResponse($request);
-        } elseif (in_array($roles,$role)) {
+        } elseif (in_array($role,$roles)) {
             return $next($request);
         } else {
             $group_id = $request->session()->get('rbac.account.group_id', false);
             $group = Group::find($group_id)->getRoles();
             if(!$group || !isset($group['roles'])){
                 return $this->setAbortResponse($request);
-            }elseif(in_array($group['roles'], $role)) {
+            }elseif(in_array($role,$group['roles'])) {
                 return $next($request);
             }            
         }
