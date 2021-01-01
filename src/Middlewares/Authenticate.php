@@ -29,7 +29,7 @@ class Authenticate {
             return response()->json([
                 'error' => [
                     'status_code' => 401,
-                    'code'        => 'INSUFFICIENT_ROLES',
+                    'code'        => 'AUTH_REQUIRED',
                     'message' => 'You are not authorized to access this resource.'
                 ],
             ], 401);

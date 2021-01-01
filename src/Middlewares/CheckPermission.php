@@ -27,7 +27,7 @@ class CheckPermission{
             return response()->json([
                 'error' => [
                     'status_code' => 401,
-                    'code'        => 'INSUFFICIENT_GROUP',
+                    'code'        => 'INSUFFICIENT_PERMISSION',
                     'message' => 'You are not in authorized group to access this resource.'
                 ],
             ], 401);
