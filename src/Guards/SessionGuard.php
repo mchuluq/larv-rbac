@@ -275,7 +275,7 @@ class SessionGuard extends BaseGuard{
 
     function hasPermission($route){
         $permissions = session()->get('rbac.permissions',[]);
-        return in_array($permissions,$route);
+        return in_array($route,$permissions);
     }
 
     function getMenu($position=null){
