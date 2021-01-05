@@ -259,7 +259,7 @@ class SessionGuard extends BaseGuard{
             ->orWhereRaw("(a.role_id IN (SELECT c.role_id FROM " . $troleact . " c WHERE (c.group_id = ?)))", [$group_id])
             ->groupBy('a.data_id','a.data_type')->get();
         foreach ($res as $r) {
-            $result[$r->data_type] = $r->data_id;
+            $result[$r->data_type][] = $r->data_id;
         }
         return $result;
     }

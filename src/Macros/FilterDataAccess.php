@@ -10,6 +10,10 @@ Builder::macro('filterDataAccess', function ($column_name,$data_type,$skip_null=
     if((!Auth::check() && $skip_null) || (empty($data_ids) && $skip_null)){
         return $this;
     }
-    $this->whereIn($column_name, $data_ids);
+    if(is_array($data_ids)){
+        $this->whereIn($column_name, $data_ids);
+    }else{
+        $this->where($column_name, $data_ids);
+    }
     return $this;
 });
