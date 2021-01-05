@@ -4,8 +4,6 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-use Kalnoy\Nestedset\NestedSet;
-
 class CreateRbacTables extends Migration{
 
     public function up(){
@@ -39,14 +37,12 @@ class CreateRbacTables extends Migration{
         
         Schema::create('menus', function (Blueprint $table) {
             $table->id();
-            $table->string('route',255)->unique()->nullable();
+            $table->string('route',255)->unique();
             $table->string('label',64);
             $table->string('html_attr',255)->nullable();
             $table->string('icon',64)->nullable();
-            NestedSet::columns($table);
+            $table->string('group',64)->nullable();
             $table->string('position',64)->comment('e.g : header, sidebar, footer, etc');
-            $table->boolean('is_visible')->default(true);
-            $table->boolean('quick_access')->default(true);
             $table->integer('display_order')->default(0);
             $table->string('description')->nullable();
             
