@@ -71,7 +71,7 @@ class CreateRbacTables extends Migration{
             $table->string('user_id',36);
             $table->dateTime('expires_at');
             $table->text('user_agent')->nullable();;
-            $table->string('ip_address', 40)->nullable();;
+            $table->string('ip_address', 40)->nullable();
             $table->timestamps();
             
             $table->unique(['token', 'user_id']);
@@ -89,13 +89,8 @@ class CreateRbacTables extends Migration{
         });
 
         Schema::table('users', function (Blueprint $table) {
-            $table->string('username',64)->after('email')->unique();
-            $table->string('phone',20)->after('username')->unique()->nullable();
-            $table->text('avatar_url')->after('phone')->nullable();
-            $table->boolean('active')->default(true)->after('avatar_url');
-            $table->integer('last_login_at')->nullable()->default(null)->after('active');
-            $table->string('last_login_ip')->nullable()->default(null)->after('last_login_at');
-            $table->string('account_id',36)->nullable()->after('last_login_ip')->comment('active account');
+            $table->boolean('active')->default(true)->after('email_verified_at');
+            $table->string('account_id',36)->nullable()->after('active')->comment('active account');
             $table->text('otp_secret')->nullable()->after('account_id');
             $table->longText('settings')->nullable()->after('otp_secret');
         });
@@ -112,7 +107,7 @@ class CreateRbacTables extends Migration{
         Schema::dropIfExists('remember_tokens');
         
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['username','phone','avatar_url','active','account_id','otp_secret','settings','last_login_ip','last_login_at']);
+            $table->dropColumn(['active','account_id','otp_secret','settings']);
         });
     }
 }

@@ -16,8 +16,8 @@ A Laravel Role Based Access Control.
   - `rbac-web` web session guard, replacement for default laravel web guard
 - user provider `rbac-user`
 - middlewares
-  - `Mchuluq\Larv\Rbac\Middlewares\ConfirmOtp` confirm OTP
-  - `Mchuluq\Larv\Rbac\Middlewares\Authenticate` common auth and OTP, replacement for default laravel auth
-  - `Mchuluq\Larv\Rbac\Middlewares\CheckPermission`
-  - `Mchuluq\Larv\Rbac\Middlewares\CheckRole:role-id`
-  - `Mchuluq\Larv\Rbac\Middlewares\CheckGroup:group-id`
+  - `Mchuluq\Larv\Rbac\Http\Middlewares\ConfirmOtp` confirm OTP
+  - `Mchuluq\Larv\Rbac\Http\Middlewares\Authenticate` common auth and OTP, replacement for default laravel auth
+  - `Mchuluq\Larv\Rbac\Http\Middlewares\CheckPermission`
+  - `Mchuluq\Larv\Rbac\Http\Middlewares\CheckRole:role-id`
+  - `Mchuluq\Larv\Rbac\Http\Middlewares\CheckGroup:group-id`

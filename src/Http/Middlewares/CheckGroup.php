@@ -1,6 +1,6 @@
 <?php
 
-namespace Mchuluq\Larv\Rbac\Middlewares;
+namespace Mchuluq\Larv\Rbac\Http\Middlewares;
 
 use Mchuluq\Larv\Rbac\Traits\HasParameters;
 
@@ -19,16 +19,14 @@ class CheckGroup{
     }
 
     function setAbortResponse($request){
+        $msg = 'You are not in authorized group to access this resource';
         if ($request->isJson() || $request->wantsJson()) {
             return response()->json([
-                'error' => [
-                    'status_code' => 401,
-                    'code'        => 'INSUFFICIENT_GROUP',
-                    'message' => 'You are not in authorized group to access this resource.'
-                ],
+                'code'  => 'INSUFFICIENT_GROUP',
+                'message' => $msg
             ], 401);
         } else {
-            return abort(401, 'You are not in authorized group to access this resource.');
+            return abort(401, $msg);
         }
     }
 }

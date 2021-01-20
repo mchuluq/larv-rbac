@@ -11,7 +11,7 @@ class RbacServiceProvider extends ServiceProvider{
 
     public function register(){
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'rbac');
-        $this->app->make('Mchuluq\Larv\Rbac\Controllers\AccountController');
+        $this->app->make('Mchuluq\Larv\Rbac\Http\Controllers\AccountController');
 
         // register macros
         Collection::make(glob(__DIR__ . '/Macros/*.php'))->mapWithKeys(function ($path) {
@@ -19,11 +19,13 @@ class RbacServiceProvider extends ServiceProvider{
         })->each(function ($macro, $path) {
             require_once $path;
         });
+
+        $this->loadTranslationsFrom('rbac', $this->app->basePath(). '/resources/lang/vendor');
     }
 
     public function boot(){
-        // register rbac-web for web guard
-        Auth::extend('rbac-web', function ($app, $name, array $config) {
+        // register rbac-web-guard for web guard
+        Auth::extend('rbac-web-guard', function ($app, $name, array $config) {
             $provider = $app['auth']->createUserProvider($config['provider'] ?? null);
             $guard = new \Mchuluq\Larv\Rbac\Guards\SessionGuard($name, $provider, $app['session.store'], request(), $config['expire'] ?? null);
             if (method_exists($guard, 'setCookieJar')) {
@@ -43,6 +45,13 @@ class RbacServiceProvider extends ServiceProvider{
             return new \Mchuluq\Larv\Rbac\UserProvider($app['hash'], $config['model']);
         });
 
+        // register middleware
+        $router = $this->app->make(\Illuminate\Routing\Router::class);
+        $router->aliasMiddleware('rbac-auth', \Mchuluq\Larv\Rbac\Http\Middlewares\Authenticate::class);
+        $router->aliasMiddleware('rbac-check-group', \Mchuluq\Larv\Rbac\Http\Middlewares\CheckGroup::class);
+        $router->aliasMiddleware('rbac-check-permission', \Mchuluq\Larv\Rbac\Http\Middlewares\CheckPermission::class);
+        $router->aliasMiddleware('rbac-check-role', \Mchuluq\Larv\Rbac\Http\Middlewares\CheckRole::class);
+
         // load migration and command
         if ($this->app->runningInConsole()) {
             include_once __DIR__ . '/../consoles/UserCommand.php';
@@ -56,11 +65,16 @@ class RbacServiceProvider extends ServiceProvider{
 
         // package publishes
         $this->publishes([
-            // Config
-            __DIR__ . '/../config/config.php' => config_path('rbac.php'),
-            // migration
-            __DIR__ . '/../database/migrations/create_rbac_tables.php.stub' => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_rbac_tables.php'),
-        ], 'larv-rbac');
+            __DIR__ . '/../config/config.php' => config_path('rbac.php')
+        ], 'config');        
+        $this->publishes([
+            __DIR__ . '/../resources/migrations/create_rbac_tables.php.stub' => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_rbac_tables.php')
+        ], 'migration');
+        $this->publishes([
+            __DIR__.'/../resources/lang' => base_path('resources/lang/vendor/rbac'),
+            __DIR__.'/../resources/views' => base_path('resources/views/vendor/rbac'),
+        ],'view');
+        $this->loadTranslationsFrom(__DIR__.'/../resources/lang/', 'rbac');
 
         // package routes
         if (config('rbac.route') == true) {

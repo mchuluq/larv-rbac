@@ -1,6 +1,6 @@
 <?php
 
-namespace Mchuluq\Larv\Rbac\Middlewares;
+namespace Mchuluq\Larv\Rbac\Http\Middlewares;
 
 use Mchuluq\Larv\Rbac\Models\Group;
 use Mchuluq\Larv\Rbac\Traits\HasParameters;
@@ -30,16 +30,14 @@ class CheckRole{
     }
 
     function setAbortResponse($request){
+        $msg = 'You are not in authorized role to access this resource';
         if ($request->isJson() || $request->wantsJson()) {
             return response()->json([
-                'error' => [
-                    'status_code' => 401,
-                    'code'        => 'INSUFFICIENT_ROLE',
-                    'message' => 'You are not in authorized role to access this resource.'
-                ],
-            ], 401);
+                'code' => 'INSUFFICIENT_ROLE',
+                'message' => $msg
+            ], 403);
         } else {
-            return abort(401, 'You are not in authorized role to access this resource.');
+            return abort(403, $msg);
         }
     }
 }

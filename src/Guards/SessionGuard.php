@@ -215,7 +215,7 @@ class SessionGuard extends BaseGuard{
         if (!$account) {
             return false;
         }
-        $user->update(['account_id' => $account_id]);
+        $user->forceFill(['account_id'=>$account_id])->save();
         $account->getRoles()->getPermissions();
         $recaller = $this->recaller();
         $data = array(
