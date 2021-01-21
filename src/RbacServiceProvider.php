@@ -81,7 +81,7 @@ class RbacServiceProvider extends ServiceProvider{
             __DIR__.'/../resources/lang' => base_path('resources/lang/vendor/rbac'),
             __DIR__.'/../resources/views' => base_path('resources/views/vendor/rbac'),
         ],'view');
-        $this->loadTranslationsFrom('rbac', $this->app->basePath(). '/resources/lang/vendor');
+        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'rbac');
     }
 
     protected function configureRoutes(){

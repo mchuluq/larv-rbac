@@ -5,7 +5,7 @@
       <div class="row justify-content-center">
         <div class="col-md-4">
             <div class="card">
-                <div class="card-header">{{__('rbac.list_select_account')}}</div>
+                <div class="card-header">{{__('rbac::rbac.list_select_account')}}</div>
                 <div class="list-group list-group-flush">
                     @foreach($accounts as $acc)
                     <a href="{{route('rbac.account.switch', ['account_id' => $acc->id])}}" class="list-group-item list-group-item-action @if($acc->id == $user->account_id) list-group-item-primary @endif"">
