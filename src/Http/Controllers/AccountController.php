@@ -39,7 +39,7 @@ class AccountController extends Controller{
             return $this->attemptOtp($req);
         } else {
             $data['url'] = route('auth.otp');
-            $data['label'] = config('app.name')."(".$this->guard()->user()->email.")";
+            $data['label'] = config('app.name')." (".$this->guard()->user()->email.")";
             return $req->wantsJson() ? response()->json($data) : view(config('rbac.views.otp_confirm'), $data);
         }
     }
