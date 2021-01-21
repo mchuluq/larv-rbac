@@ -7,5 +7,5 @@ return array(
     'otp_disabled_success' => "OTP turned off successfully",
     'account_not_found' => "Account not found",
     'account_swicthed' => "Account successfully switched",
-    'list_select_account' => "Account successfully switched",
+    'list_select_account' => "Select Account",
 );
