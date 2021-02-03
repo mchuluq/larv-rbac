@@ -9,13 +9,6 @@ use Request;
 
 class UserProvider extends BaseUserProvider{
     
-    /**
-     * Retrieve a user by their unique identifier and "remember me" token.
-     *
-     * @param  mixed  $identifier
-     * @param  string  $token
-     * @return \Illuminate\Contracts\Auth\Authenticatable|null
-     */
     public function retrieveByToken($identifier, $token){
         if (!$model = $this->getModelById($identifier)) {
             return null;
@@ -28,13 +21,6 @@ class UserProvider extends BaseUserProvider{
         }
     }
 
-    /**
-     * Add a token value for the "remember me" session.
-     *
-     * @param  string  $value
-     * @param  int $expire
-     * @return void
-     */
     public function addRememberToken($identifier, $value, $expire){
         $model = $this->getModelById($identifier);
         if ($model) {
@@ -47,15 +33,6 @@ class UserProvider extends BaseUserProvider{
         }
     }
 
-    /**
-     * Replace "remember me" token with new token.
-     *
-     * @param  string $token
-     * @param  string $newToken
-     * @param  int $expire
-     *
-     * @return void
-     */
     public function replaceRememberToken($identifier, $token, $newToken, $expire){
         $model = $this->getModelById($identifier);
         if ($model) {
@@ -68,13 +45,6 @@ class UserProvider extends BaseUserProvider{
         }
     }
 
-    /**
-     * Delete the specified "remember me" token for the given user.
-     *
-     * @param  mixed $identifier
-     * @param  string $token
-     * @return null
-     */
     public function deleteRememberToken($identifier, $token){
         $model = $this->getModelById($identifier);
         if ($model && $token = $model->rememberTokens()->where('token', $token)->first()) {
@@ -82,33 +52,17 @@ class UserProvider extends BaseUserProvider{
         }
     }
 
-    /**
-     * Purge old or expired "remember me" tokens.
-     *
-     * @param  mixed $identifier
-     * @param  bool $expired
-     * @return null
-     */
     public function purgeRememberTokens($identifier, $expired = false){
         $model = $this->getModelById($identifier);
-
         if ($model) {
             $query = $model->rememberTokens();
-
             if ($expired) {
                 $query->where('expires_at', '<', Carbon::now());
             }
-
             $query->delete();
         }
     }
 
-    /**
-     * Gets the user based on their unique identifier.
-     *
-     * @param  mixed $identifier
-     * @return \Illuminate\Contracts\Auth\Authenticatable|null
-     */
     protected function getModelById($identifier){
         $model = $this->createModel();
         return $model->where([$model->getAuthIdentifierName()=>$identifier,'active'=>true])->first();
@@ -122,24 +76,17 @@ class UserProvider extends BaseUserProvider{
         ) {
             return;
         }
-
-        // First we will add each credential element to the query as a where clause.
-        // Then we can execute the query and, if we found a user, return it in a
-        // Eloquent User "model" that will be utilized by the Guard instances.
         $query = $this->newModelQuery();
-
         foreach ($credentials as $key => $value) {
             if (Str::contains($key, 'password')) {
                 continue;
             }
-
             if (is_array($value) || $value instanceof Arrayable) {
                 $query->whereIn($key, $value);
             } else {
                 $query->where($key, $value);
             }
         }
-
         return $query->where('active',true)->first();
     }
 }

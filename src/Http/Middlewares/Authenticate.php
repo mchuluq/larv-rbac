@@ -12,7 +12,7 @@ class Authenticate {
 
     public function handle($request, Closure $next, $checkAccount=true){
         if (!Auth::check()) {
-            return redirect(config('rbac.unauthenticated_redirect_uri'))->with('message', 'You need to login first');
+            return $this->setAbortResponse($request);
         }elseif (Auth::user()->otpEnabled() && !$request->session()->has(config('rbac.otp_session_identifier'))) {
             return $this->sendNeedOtpConfirm($request);
         } elseif (!$request->session()->has('rbac.account') && $checkAccount == true) {
@@ -26,10 +26,11 @@ class Authenticate {
         if ($request->isJson() || $request->wantsJson()) {
             return response()->json([
                 'code' => 'AUTH_REQUIRED',
-                'message' => $msg
+                'message' => $msg,
+                'redirect_url' => url(config('rbac.unauthenticated_redirect_uri'))
             ], 401);
         } else {
-            return abort(401, $msg);
+            return redirect(config('rbac.unauthenticated_redirect_uri'))->with('message', 'You need to login first');
         }
     }
 
@@ -38,7 +39,8 @@ class Authenticate {
         if($request->isJson() || $request->wantsJson()){
             return response()->json([
                 'code' => 'OTP_REQUIRED',
-                'message' => $msg
+                'message' => $msg,
+                'redirect_url' => route('auth.otp')
             ],403);
         }else{
             return redirect()->route('auth.otp')->with('message', $msg);
@@ -50,7 +52,8 @@ class Authenticate {
         if($request->isJson() || $request->wantsJson()){
             return response()->json([
                 'code' => 'ACCOUNT_SELECT_REQUIRED',
-                'message' => $msg
+                'message' => $msg,
+                'redirect_url' => route('rbac.account.switch')
             ],403);
         }else{
             return redirect()->route('rbac.account.switch')->with('message', $msg);

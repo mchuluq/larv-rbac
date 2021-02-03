@@ -48,9 +48,7 @@ class RbacServiceProvider extends ServiceProvider{
     protected function registerMiddlewares(){
         $router = $this->app->make(\Illuminate\Routing\Router::class);
         $router->aliasMiddleware('rbac-auth', \Mchuluq\Larv\Rbac\Http\Middlewares\Authenticate::class);
-        $router->aliasMiddleware('rbac-check-group', \Mchuluq\Larv\Rbac\Http\Middlewares\CheckGroup::class);
         $router->aliasMiddleware('rbac-check-permission', \Mchuluq\Larv\Rbac\Http\Middlewares\CheckPermission::class);
-        $router->aliasMiddleware('rbac-check-role', \Mchuluq\Larv\Rbac\Http\Middlewares\CheckRole::class);
     }
 
     public function boot(){       

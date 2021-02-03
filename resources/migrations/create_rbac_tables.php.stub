@@ -35,20 +35,6 @@ class CreateRbacTables extends Migration{
             $table->engine = 'InnoDB';
         });
         
-        Schema::create('menus', function (Blueprint $table) {
-            $table->id();
-            $table->string('route',255)->unique();
-            $table->string('label',64);
-            $table->string('html_attr',255)->nullable();
-            $table->string('icon',64)->nullable();
-            $table->string('group',64)->nullable();
-            $table->string('position',64)->comment('e.g : header, sidebar, footer, etc');
-            $table->integer('display_order')->default(0);
-            $table->string('description')->nullable();
-            
-            $table->engine = 'InnoDB';
-        });
-
         Schema::create('role_actors', function (Blueprint $table) {
             $table->string('role_id', 64);
             $table->string('group_id', 64)->nullable();

@@ -20,7 +20,7 @@ class AccountController extends Controller{
         if (!$ga->verifyCode($this->guard()->user()->otp_secret, $req->input(config('rbac.otp_input_name')))) {
             throw ValidationException::withMessages(['otp' => [__('rbac::rbac.otp_failed_response')],]);
         }
-        $req->session()->put(config('rbac.otp_session_identifier'), time());
+        $this->guard()->rbac()->authenticateOtp(true);
         return $req->wantsJson() ? response()->json(['message'=>__('rbac::rbac.otp_success_response')]) : redirect()->intended($this->redirectPath());
     }
 
@@ -52,7 +52,7 @@ class AccountController extends Controller{
             ->where('active', true)->get();
             return $req->wantsJson() ? response()->json($data) : view(config('rbac.views.account'), $data);
         }else{
-            $build = Auth::buildSession($account_id);
+            $build = Auth::rbac()->buildSession($account_id);
             if(!$build){
                 $msg = __('rbac::rbac.account_not_found');
                 return $req->wantsJson() ? response()->json(['message'=>$msg]) : response()->view('errors.404',['message'=>$msg],404);
@@ -73,7 +73,10 @@ class AccountController extends Controller{
     }
     function otpRegister(Request $req){
         $user = $this->guard()->user();
-        $req->validate(['otp_secret' => 'required']);
+        $req->validate([
+            'otp_secret' => 'required',
+            'password' => 'required|password'
+        ]);
         $user->otp_secret = $req->input('otp_secret');
         $user->save();
         $msg = __('rbac::rbac.otp_enabled_success');
@@ -81,7 +84,9 @@ class AccountController extends Controller{
     }
     function otpUnregister(Request $req){
         $user = $this->guard()->user();
-        $req->validate(['password','password:rbac-web-guard']);
+        $req->validate([
+            'password'=>'required|password'
+        ]);
         $user->otp_secret = null;
         $user->save();
         $msg = __('rbac::rbac.otp_disabled_success');
