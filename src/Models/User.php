@@ -26,7 +26,7 @@ class User extends Authenticatable{
     }
 
     public function otpEnabled(){
-        return (!is_null($this->otp_secret)) ? true : false;
+        return (!is_null($this->otp_secret));
     }
 
     public function setSettingsAttribute($value){
@@ -59,5 +59,9 @@ class User extends Authenticatable{
         }else{
             unset($this->attributes['password']);
         }
+    }
+
+    public function credentials(){
+        return $this->hasMany(Credential::class);
     }
 }

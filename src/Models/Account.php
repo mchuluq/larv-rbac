@@ -9,9 +9,6 @@ use Mchuluq\Larv\Rbac\Traits\HasPermission;
 use Mchuluq\Larv\Rbac\Traits\HasRole;
 use Mchuluq\Larv\Rbac\Traits\HasDataAccess;
 
-// use Mchuluq\Larv\Rbac\Models\User as User
-// use Mchuluq\Larv\Rbac\Models\Group as Group
-
 class Account extends Model{
 
     use HasPermission,HasRole,HasDataAccess;

@@ -46,6 +46,12 @@ class Rbac implements RbacInterface {
             'data_access' => $this->getDataAccess($account->id, $account->group_id),
         );
         $this->session->put('rbac', $data);
+        $user = $this->user;
+        $user->timestamps = false;
+        DB::table($user->getTable())->where('id',$user->id)->update([
+            'last_login_at' => \Carbon\Carbon::now()->timestamp,
+            'last_login_ip' => \Request::ip()
+        ]);
         return true;
     }
     

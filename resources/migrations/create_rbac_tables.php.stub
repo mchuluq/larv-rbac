@@ -79,6 +79,16 @@ class CreateRbacTables extends Migration{
             $table->string('account_id',36)->nullable()->after('active')->comment('active account');
             $table->text('otp_secret')->nullable()->after('account_id');
             $table->longText('settings')->nullable()->after('otp_secret');
+            $table->integer('last_login_at')->nullable()->default(null)->after('settings');
+            $table->string('last_login_ip')->nullable()->default(null)->after('last_login_at');
+        });
+
+        Schema::create('credentials', function (Blueprint $table) {
+            $table->id();
+            $table->string('user_id',36);
+            $table->binary('credId');
+            $table->binary('key');
+            $table->timestamps();
         });
     }
 
@@ -95,5 +105,7 @@ class CreateRbacTables extends Migration{
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn(['active','account_id','otp_secret','settings']);
         });
+
+        Schema::dropIfExists('credentials');
     }
 }
