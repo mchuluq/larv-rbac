@@ -92,7 +92,7 @@ class WebauthnController{
 
         try {
             $response = $loginValidator->check($request->cookie(RbacServiceProvider::WEBAUTHN_COOKIE), $credentials, $requestOptions, $credentialRequest, null, [$requestOptions->getRpId()]);
-            Auth::loginUsingId($response->getUserHandle());
+            Auth::loginUsingId($response->getUserHandle(),true);
             Auth::rbac()->authenticateOtp(true);
         } catch (InvalidArgumentException $e) {
             throw new UnauthorizedException('Webauthn: Failed validating request', 422, $e);
