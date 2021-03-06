@@ -17,6 +17,9 @@ class User extends Authenticatable{
     public function accounts(){
         return $this->hasMany(Account::class);
     }
+    public function account(){
+        return $this->hasOne(Account::class,'id','account_id');
+    }
 
     public function setOtpSecretAttribute($value){
         $this->attributes['otp_secret'] = (!is_null($value)) ? encrypt($value) : $value;

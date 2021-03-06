@@ -97,4 +97,18 @@ class Rbac implements RbacInterface {
     public function checkAccount(): bool{
         return (!$this->session->has('rbac.account'));
     }
+
+    public function account(){
+        return $this->user->account()->first();
+    }
+    
+    public function accountable($type=null){
+        $accountable = $this->account()->accountable()->first();
+        if($type){
+            if(get_class($accountable) != $type){
+                throw new \Exception('model not match');
+            }
+        }
+        return $accountable;
+    }
 }
