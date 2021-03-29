@@ -31,6 +31,11 @@ class Account extends Model{
         static::creating(function ($model) {
             $model->id = (string) Str::uuid();
         });
+        static::saved(function($model){
+            if($model->active == true){
+                $model->user->update(['account_id'=>$model->id]);
+            }
+        });
     }
 
     public function user(){
