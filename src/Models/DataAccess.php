@@ -44,7 +44,11 @@ class DataAccess extends Model{
     }
 
     function getFor($for, $type){
+        $access_types = config('rbac.access_type',[]);
         $result = [];
+        foreach($access_types as $access_type){
+            $result[$access_type] = array();
+        }
         $get = $this->where([$type => $for])->get();
         foreach ($get as $dt) {
             $result[$dt->data_type][] = $dt->data_id;

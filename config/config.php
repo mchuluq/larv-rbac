@@ -12,6 +12,8 @@ return array(
         'otp_confirm' => 'vendor.rbac.otp-confirm',
     ],
 
+    'access_type' => ['prodi','fakultas','level','organisasi'],
+
     'otp_input_name' => 'otp_input',
     'otp_session_identifier' => 'otp_session'
 );
