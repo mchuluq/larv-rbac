@@ -31,7 +31,7 @@ class Rbac implements RbacInterface {
 
     public function buildSession($account_id){
         $account = $this->user->accounts()
-        // ->with('accountable')->whereHas('accountable')
+        ->with('accountable')->whereHas('accountable')
         ->where(['id' => $account_id, 'active' => true])->first();
         if (!$account) {
             return false;

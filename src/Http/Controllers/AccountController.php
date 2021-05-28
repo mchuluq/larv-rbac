@@ -48,7 +48,7 @@ class AccountController extends Controller{
         if(!$account_id){
             $data['user'] = Auth::user();
             $data['accounts'] = Auth::user()->accounts()
-            // ->with('accountable')
+            ->with('accountable')
             ->where('active', true)->get();
             return $req->wantsJson() ? response()->json($data) : view(config('rbac.views.account'), $data);
         }else{
