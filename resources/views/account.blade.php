@@ -13,7 +13,7 @@
                             <h5 class="mb-1">{{$acc->accountable_id}}</h5>
                             <small>{{$acc->group_id}}</small>
                         </div>
-                        <code class="mb-1">{{$acc['accountable_type']}}</code>
+                        <code class="mb-1">{{$account_types[$acc['accountable_type']]}}</code>
                     </a>
                     @endforeach
                 </div>

@@ -50,6 +50,7 @@ class AccountController extends Controller{
             $data['accounts'] = Auth::user()->accounts()
             ->with('accountable')
             ->where('active', true)->get();
+            $data['account_types'] = config('rbac.account_types');
             return $req->wantsJson() ? response()->json($data) : view(config('rbac.views.account'), $data);
         }else{
             $build = Auth::rbac()->buildSession($account_id);

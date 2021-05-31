@@ -15,5 +15,9 @@ return array(
     'access_type' => ['prodi','fakultas','level','organisasi'],
 
     'otp_input_name' => 'otp_input',
-    'otp_session_identifier' => 'otp_session'
+    'otp_session_identifier' => 'otp_session',
+
+    'account_types' => [
+        // model name => label
+    ]
 );
