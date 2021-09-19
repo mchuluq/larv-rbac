@@ -3,6 +3,7 @@
 use Mchuluq\Larv\Rbac\Models\Permission;
 use Mchuluq\Larv\Rbac\Models\DataAccess;
 use Mchuluq\Larv\Rbac\Models\RoleActor;
+use Mchuluq\Larv\Rbac\Models\Account;
 
 use Illuminate\Support\Facades\DB;
 
@@ -110,5 +111,78 @@ class Rbac implements RbacInterface {
             }
         }
         return $accountable;
+    }
+
+    public function getUserByRole($role_id){
+        $roleactors = RoleActor::where('role_id','=',$role_id)->with(['group','account']);
+        $result = [];
+        foreach($roleactors as $row){
+            if($row->account){
+                $result[$row->account->user_id] = $row->account->user;
+            }
+            if($row->group){
+                $userbygroup = $this->getuserByGroup($row->group_id);
+                foreach($userbygroup as $user){
+                    $result[$user->id] = $user;
+                }
+            }
+        }
+        return $result;
+    }
+    public function getUserByGroup($group_id){
+        $get = Account::where('group_id','=',$group_id)->with(['user'])->get();
+        $result = [];
+        foreach($get as $row){
+            $result[$row->user_id] = $row->user;
+        }
+        return $result;
+    }
+    public function getUserByPermission($route){
+        $permissions = Permission::where('route','=',$route)->with(['account','role','group'])->get();
+        $result = [];
+        foreach($permissions as $row){
+            if($row->account){
+                $result[$row->account->user_id] = $row->account->user;
+            }
+            if($row->group){
+                $userbygroup = $this->getUserByGroup($row->group_id);
+                foreach($userbygroup as $user){
+                    $result[$user->id] = $user;
+                }
+            }
+            if($row->role){
+                $userbyrole = $this->getUserByRole($row->group_id);
+                foreach($userbyrole as $user){
+                    $result[$user->id] = $user;
+                }
+            }
+        }
+        return $result;
+    }
+
+    public function getUserByDataAccess($data_id,$data_type){
+        $permissions = DataAccess::where([
+            'data_id' => $data_id,
+            'data_type' => $data_type
+        ])->with(['account','role','group'])->get();
+        $result = [];
+        foreach($permissions as $row){
+            if($row->account){
+                $result[$row->account->user_id] = $row->account->user;
+            }
+            if($row->group){
+                $userbygroup = $this->getUserByGroup($row->group_id);
+                foreach($userbygroup as $user){
+                    $result[$user->id] = $user;
+                }
+            }
+            if($row->role){
+                $userbyrole = $this->getUserByRole($row->group_id);
+                foreach($userbyrole as $user){
+                    $result[$user->id] = $user;
+                }
+            }
+        }
+        return $result;
     }
 }

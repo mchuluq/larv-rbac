@@ -39,11 +39,11 @@ class Account extends Model{
     }
 
     public function user(){
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(config('auth.providers.users.model'),'user_id','id');
     }
     
     public function group(){
-        return $this->belongsTo(Group::class);
+        return $this->belongsTo(Group::class,'group_id','id');
     }
 
     public function accountable(){

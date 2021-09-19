@@ -55,4 +55,14 @@ class DataAccess extends Model{
         }
         return $result;
     }
+
+    public function group(){
+        return $this->hasOne(Group::class,'id','group_id');
+    }
+    public function account(){
+        return $this->hasOne(Account::class,'id','account_id');
+    }
+    public function role(){
+        return $this->hasOne(Role::class,'id','role_id');
+    }
 }

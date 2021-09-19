@@ -45,4 +45,11 @@ class RoleActor extends Model{
         }
         return $result;
     }
+
+    public function group(){
+        return $this->hasOne(Group::class,'id','group_id');
+    }
+    public function account(){
+        return $this->hasOne(Account::class,'id','account_id');
+    }
 }
