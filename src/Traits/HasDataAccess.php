@@ -59,10 +59,10 @@ trait HasDataAccess {
     }
 
     function isHasDataAccess($data_id,$data_type){
-        if (!isset($this->attributes['permissions'])) {
+        if (!isset($this->attributes['data_access'])) {
             return false;
         }
-        return in_array($data_id, $this->attributes['permissions'][$data_type]);
+        return in_array($data_id, $this->attributes['data_access'][$data_type]);
     }
     
 
