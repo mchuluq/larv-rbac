@@ -49,4 +49,8 @@ class Account extends Model{
     public function accountable(){
         return $this->morphTo();
     }
+
+    public function disableOthers(){
+        return $this->where('user_id','=',$this->user_id)->where('id','<>',$this->id)->update(['active'=>false]);
+    }
 }
