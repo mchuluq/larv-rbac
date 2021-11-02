@@ -56,7 +56,7 @@ class AccountController extends Controller{
             $build = Auth::rbac()->buildSession($account_id);
             if(!$build){
                 $msg = __('rbac::rbac.account_not_found');
-                return $req->wantsJson() ? response()->json(['message'=>$msg]) : response()->view('errors.404',['message'=>$msg],404);
+                return $req->wantsJson() ? response()->json(['message'=>$msg]) : response()->view('errors.message',['message'=>$msg,'title'=>'Not found','code'=>'404'],404);
             }
             $msg = __('rbac::rbac.account_switched');
             return $req->wantsJson() ? response()->json(['message'=>$msg]) : redirect()->intended(config('rbac.authenticated_redirect_uri'));
