@@ -14,7 +14,7 @@ class Account extends Model{
     use HasPermission,HasRole,HasDataAccess;
 
     protected $fillable = [
-        'user_id', 'group_id', 'active','accountable_id','accountable_type'
+        'id','user_id', 'group_id', 'active','accountable_id','accountable_type'
     ];
 
     protected $casts = [
@@ -29,7 +29,9 @@ class Account extends Model{
     protected static function boot(){
         parent::boot();
         static::creating(function ($model) {
-            $model->id = (string) Str::uuid();
+            if(!$model->id){
+                $model->id = (string) Str::uuid();
+            }
         });
         static::saved(function($model){
             if($model->active == true){
