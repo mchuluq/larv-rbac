@@ -162,9 +162,14 @@ class Rbac implements RbacInterface {
 
     public function getUserByDataAccess($data_id,$data_type){
         $permissions = DataAccess::where([
-            'data_id' => $data_id,
             'data_type' => $data_type
-        ])->with(['account','role','group'])->get();
+        ])->where(function($q) use ($data_id){
+            if(is_array($data_id)){
+                $q->whereIn('data_id',$data_id);
+            }else{
+                $q->where('data_id','=',$data_id);
+            }
+        })->with(['account','role','group'])->get();
         $result = [];
         foreach($permissions as $row){
             if($row->account){
