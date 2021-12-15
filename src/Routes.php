@@ -19,7 +19,7 @@ Route::group(['middleware' => 'web'], function () {
     // webauthn
     Route::post('webauthn/login/details','Mchuluq\Larv\Rbac\Http\Controllers\WebauthnController@loginDetails')->name('webauthn.login.details');
     Route::post('webauthn/login', 'Mchuluq\Larv\Rbac\Http\Controllers\WebauthnController@login')->name('webauthn.login');
-    Route::post('webauthn/create/details', 'Mchuluq\Larv\Rbac\Http\Controllers\WebAuthnController@createDetails')->middleware('rbac-auth')->name('webauthn.create.details');
-    Route::post('webauthn/create', 'Mchuluq\Larv\Rbac\Http\Controllers\WebAuthnController@create')->middleware('rbac-auth')->name('webauthn.create');
-    Route::match(['get','delete'],'webauthn/user', 'Mchuluq\Larv\Rbac\Http\Controllers\WebAuthnController@user')->middleware('rbac-auth')->name('webauthn.user');
+    Route::post('webauthn/create/details', 'Mchuluq\Larv\Rbac\Http\Controllers\WebauthnController@createDetails')->middleware('rbac-auth')->name('webauthn.create.details');
+    Route::post('webauthn/create', 'Mchuluq\Larv\Rbac\Http\Controllers\WebauthnController@create')->middleware('rbac-auth')->name('webauthn.create');
+    Route::match(['get','delete'],'webauthn/user', 'Mchuluq\Larv\Rbac\Http\Controllers\WebauthnController@user')->middleware('rbac-auth')->name('webauthn.user');
 });
