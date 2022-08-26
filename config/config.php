@@ -19,5 +19,7 @@ return array(
 
     'account_types' => [
         // model name => label
-    ]
+    ],
+
+    'webauthn' => false
 );
