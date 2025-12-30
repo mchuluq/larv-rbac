@@ -51,7 +51,7 @@ class Rbac implements RbacInterface {
         $user->timestamps = false;
         DB::table($user->getTable())->where('id',$user->id)->update([
             'last_login_at' => \Carbon\Carbon::now()->timestamp,
-            'last_login_ip' => \Request::ip()
+            'last_login_ip' => (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : \Request::ip()
         ]);
         return true;
     }
@@ -114,7 +114,7 @@ class Rbac implements RbacInterface {
     }
 
     public function getUserByRole($role_id){
-        $roleactors = RoleActor::where('role_id','=',$role_id)->with(['group','account']);
+        $roleactors = RoleActor::where('role_id','=',$role_id)->with(['group','account'])->get();
         $result = [];
         foreach($roleactors as $row){
             if($row->account){
@@ -151,7 +151,7 @@ class Rbac implements RbacInterface {
                 }
             }
             if($row->role){
-                $userbyrole = $this->getUserByRole($row->group_id);
+                $userbyrole = $this->getUserByRole($row->role_id);
                 foreach($userbyrole as $user){
                     $result[$user->id] = $user;
                 }
