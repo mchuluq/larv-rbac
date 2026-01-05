@@ -18,11 +18,23 @@
             "role": "Developer"
         }
     ],
+    "require": {
+        "php": "^7.4|^8.0",
+        "illuminate/support": "^8.0",
+        "illuminate/database": "^8.0",
+        "illuminate/http": "^8.0",
+        "illuminate/auth": "^8.0",
+        "illuminate/contracts": "^8.0",
+        "illuminate/cookie": "^8.0",
+        "illuminate/encryption": "^8.0",
+        "illuminate/mail": "^8.0",
+        "illuminate/routing": "^8.0",
+        "illuminate/session": "^8.0",
+        "illuminate/validation": "^8.0",
+        "matomo/device-detector": "6.4.8"
+    },
     "require-dev": {
         "mockery/mockery": "~1.0"
-    },
-    "require": {
-        "web-auth/webauthn-lib": "^3.3"
     },
     "autoload": {
         "psr-4": {

@@ -5,7 +5,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Arr;
 
 Builder::macro('filterDataAccessConfig', function (array $config,$column_name,$data_type,$skip_null=false) {
-    $data_access = session()->get('rbac.data_access', null);
+    $user = Auth::user();
+    if(!$user && $skip_null){
+        return $this;
+    }
+    $data_access = ($user) ? $user->storage()->get('rbac.data_access', []) : [];
     $data_ids = Arr::get($data_access,$data_type,[]);
     
     if((!Auth::check() && $skip_null) || (empty($data_ids) && $skip_null)){

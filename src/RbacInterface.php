@@ -2,10 +2,6 @@
 
 interface RbacInterface {
 
-    public function checkOtp():bool;
-
-    public function authenticateOtp(bool $status);
-
     public function buildSession($account_id);
     
     public function getPermissions($account_id,$group_id): array;

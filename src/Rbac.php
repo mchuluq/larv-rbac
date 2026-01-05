@@ -6,28 +6,18 @@ use Mchuluq\Larv\Rbac\Models\RoleActor;
 use Mchuluq\Larv\Rbac\Models\Account;
 
 use Illuminate\Support\Facades\DB;
+use Mchuluq\Larv\Rbac\Helpers\IpHelper;
 
 class Rbac implements RbacInterface {
 
     protected $session;
     protected $user;
+    protected $recaller;
 
     public function __construct($session,$user,$recaller){
         $this->session = $session;
         $this->user = $user;
         $this->recaller = $recaller;
-    }
-
-    public function checkOtp():bool{
-        return ($this->user->otpEnabled() && !$this->session->has(config('rbac.otp_session_identifier')));
-    }
-
-    public function authenticateOtp(bool $status){
-        if($status){
-            $this->session->put(config('rbac.otp_session_identifier'), time());
-        }else{
-            $this->session->forget(config('rbac.otp_session_identifier'));
-        }
     }
 
     public function buildSession($account_id){
@@ -40,18 +30,18 @@ class Rbac implements RbacInterface {
         $this->user->forceFill(['account_id'=>$account_id])->save();
         $account->getRoles()->getPermissions();
         $data = array(
-            'via_remember' => ($this->recaller) ? true : false,
             'account' => $account->toArray(),
             'user' => $this->user->toArray(),
             'permissions' => $this->getPermissions($account->id, $account->group_id),
             'data_access' => $this->getDataAccess($account->id, $account->group_id),
         );
-        $this->session->put('rbac', $data);
+        $this->user->storage()->set('rbac', $data);
+        $this->session->put('via_remember', ($this->recaller) ? true : false);
         $user = $this->user;
         $user->timestamps = false;
         DB::table($user->getTable())->where('id',$user->id)->update([
             'last_login_at' => \Carbon\Carbon::now()->timestamp,
-            'last_login_ip' => (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : \Request::ip()
+            'last_login_ip' => IpHelper::getRealIp(request())
         ]);
         return true;
     }
@@ -91,12 +81,12 @@ class Rbac implements RbacInterface {
     }
 
     public function hasPermissions($route):bool{
-        $permissions = $this->session->get('rbac.permissions',[]);
+        $permissions = $this->user->storage->get('rbac.permissions',[]);
         return in_array($route,$permissions);
     }
 
     public function checkAccount(): bool{
-        return (!$this->session->has('rbac.account'));
+        return (!$this->user->storage()->has('rbac.account'));
     }
 
     public function account(){
