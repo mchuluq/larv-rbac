@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
-
 use Illuminate\Support\Collection;
 
 class RbacServiceProvider extends ServiceProvider{

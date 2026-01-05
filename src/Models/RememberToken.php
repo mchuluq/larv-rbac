@@ -1,11 +1,7 @@
-<?php
-
-namespace Mchuluq\Larv\Rbac\Models;
+<?php namespace Mchuluq\Larv\Rbac\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Mchuluq\Larv\Rbac\Helpers\DeviceHelper;
 use Mchuluq\Larv\Rbac\Helpers\IpHelper;
 

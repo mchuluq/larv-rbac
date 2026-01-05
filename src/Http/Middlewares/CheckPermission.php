@@ -1,6 +1,4 @@
-<?php
-
-namespace Mchuluq\Larv\Rbac\Http\Middlewares;
+<?php namespace Mchuluq\Larv\Rbac\Http\Middlewares;
 
 use Mchuluq\Larv\Rbac\Traits\HasParameters;
 

@@ -1,6 +1,4 @@
-<?php
-
-namespace Mchuluq\Larv\Rbac\Models;
+<?php namespace Mchuluq\Larv\Rbac\Models;
 
 use Illuminate\Database\Eloquent\Model;
 

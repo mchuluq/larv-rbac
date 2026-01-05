@@ -1,11 +1,8 @@
-<?php
-
-namespace Mchuluq\Larv\Rbac\Traits;
+<?php namespace Mchuluq\Larv\Rbac\Traits;
 
 use Mchuluq\Larv\Rbac\Models\Account;
 use Mchuluq\Larv\Rbac\Models\Group;
 use Mchuluq\Larv\Rbac\Models\RoleActor;
-
 
 trait HasRole {
 

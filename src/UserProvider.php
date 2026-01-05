@@ -1,6 +1,4 @@
-<?php
-
-namespace Mchuluq\Larv\Rbac;
+<?php namespace Mchuluq\Larv\Rbac;
 
 use Carbon\Carbon;
 use Illuminate\Auth\EloquentUserProvider as BaseUserProvider;

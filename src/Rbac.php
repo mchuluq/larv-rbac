@@ -4,9 +4,9 @@ use Mchuluq\Larv\Rbac\Models\Permission;
 use Mchuluq\Larv\Rbac\Models\DataAccess;
 use Mchuluq\Larv\Rbac\Models\RoleActor;
 use Mchuluq\Larv\Rbac\Models\Account;
+use Mchuluq\Larv\Rbac\Helpers\IpHelper;
 
 use Illuminate\Support\Facades\DB;
-use Mchuluq\Larv\Rbac\Helpers\IpHelper;
 
 class Rbac implements RbacInterface {
 
