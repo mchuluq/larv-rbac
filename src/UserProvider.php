@@ -128,7 +128,7 @@ class UserProvider extends BaseUserProvider{
 
     protected function enforceDeviceLimit($user){
         $maxDevices = config('rbac.max_devices', 5);
-        if(!config('rbac.enforce_limit', false)){ {
+        if(!config('rbac.enforce_limit', false)){
             return;
         }
         // Count active tokens
