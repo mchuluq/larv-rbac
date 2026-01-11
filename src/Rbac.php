@@ -36,7 +36,6 @@ class Rbac implements RbacInterface {
             'data_access' => $this->getDataAccess($account->id, $account->group_id),
         );
         $this->user->storage()->set('rbac', $data);
-        $this->session->put('via_remember', ($this->recaller) ? true : false);
         $user = $this->user;
         $user->timestamps = false;
         DB::table($user->getTable())->where('id',$user->id)->update([
