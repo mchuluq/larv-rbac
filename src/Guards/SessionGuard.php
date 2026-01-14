@@ -1,21 +1,18 @@
-<?php
-
-namespace Mchuluq\Larv\Rbac\Guards;
+<?php namespace Mchuluq\Larv\Rbac\Guards;
 
 use Illuminate\Support\Str;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Contracts\Auth\UserProvider;
 use Symfony\Component\HttpFoundation\Request;
 use Illuminate\Auth\SessionGuard as BaseGuard;
-use Illuminate\Auth\Events\Logout as LogoutEvent;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
-
+use Illuminate\Support\Facades\DB;
+use Mchuluq\Larv\Rbac\Helpers\DeviceHelper;
 use Mchuluq\Larv\Rbac\Rbac;
 
 class SessionGuard extends BaseGuard{
     
     protected $expire;
-
     protected $rbac;
 
     public function __construct($name,UserProvider $provider,Session $session,Request $request = null,$expire = 10080) {
@@ -23,51 +20,157 @@ class SessionGuard extends BaseGuard{
         $this->expire = $expire ?: 10080;
     }
 
-    public function user(){
-        if ($this->loggedOut) {
-            return;
-        }
-        if (!is_null($this->user)) {
-            return $this->user;
-        }
-        $id = $this->session->get($this->getName());
-        if (!is_null($id)) {
-            if ($this->user = $this->provider->retrieveById($id)) {
-                $this->fireAuthenticatedEvent($this->user);
-            }
-        }
-        $recaller = $this->recaller();
-        if (is_null($this->user) && !is_null($recaller)) {
-            $this->user = $this->userFromRecaller($recaller);
-            if ($this->user) {
-                $this->replaceRememberToken($this->user, $recaller->token());
-                $this->updateSession($this->user->getAuthIdentifier());
-                $this->rbac()->authenticateOtp(true);
-                $this->rbac()->buildSession($this->user->account_id);
-                $this->fireLoginEvent($this->user, true);
-            }
-        }
-        return $this->user;
-    }
-
-    protected function replaceRememberToken(AuthenticatableContract $user, $token){
-        $this->provider->replaceRememberToken($user->getAuthIdentifier(),$token,$newToken = $this->getNewToken(),$this->expire);
-        $this->queueRecallerCookie($user, $newToken);
-    }
-
     public function login(AuthenticatableContract $user, $remember = false){
         $this->updateSession($user->getAuthIdentifier());
-        $this->rbac()->buildSession($user->account_id);
+        if ($user->account_id) {
+            $this->rbac()->buildSession($user->account_id);
+        }
+        $remember_token = null;
         if ($remember) {
-            $token = $this->createRememberToken($user);
+            $request = request();
+            $fingerprint = DeviceHelper::getSimpleFingerprint($request);            
+            $existingToken = $user->rememberTokens()->where('device_fingerprint', $fingerprint)->where('expires_at', '>', now())->first();
+            if ($existingToken) {
+                $token = $existingToken->token;
+                $existingToken->update(['last_used_at' => now()]);
+            } else {
+                $token = $this->createRememberToken($user);
+            }
+            if($token){
+                $remember_token = $token;
+            }
             $this->queueRecallerCookie($user, $token);
         }
+        $this->linkSessionToDeviceToken($remember_token);
         $this->fireLoginEvent($user, $remember);
         $this->setUser($user);
     }
 
+    protected function linkSessionToDeviceToken($remember_token){
+        if (!$remember_token || config('session.driver') !== 'database') {
+            return;
+        }
+        $session_id = $this->session->getId();
+        DB::table(config('session.table', 'sessions'))->where('id', $session_id)->update(['remember_token' => $remember_token]);
+    }
+
+   /**
+     * Log the user out of the application.
+     * Hanya hapus remember token untuk device saat ini
+     *
+     * @return void
+     */
+    public function logout(){
+        $user = $this->user();
+        if ($user && $this->recaller()) {
+            $recaller = $this->recaller();
+            $this->provider->deleteRememberToken(
+                $user->getAuthIdentifier(),
+                $recaller->token()
+            );
+        }
+        // Clear session
+        $this->clearUserDataFromStorage();
+        if (isset($this->events)) {
+            $this->events->dispatch(new \Illuminate\Auth\Events\Logout($this->name, $user));
+        }
+        // Clear remember cookie
+        $this->getCookieJar()->queue($this->getCookieJar()->forget($this->getRecallerName()));
+        $this->user = null;
+        $this->loggedOut = true;
+    }
+
+    /**
+     * Logout dari semua device
+     *
+     * @return void
+     */
+    public function logoutAllDevices(){
+        $user = $this->user();
+        if ($user) {
+            // Hapus semua remember tokens
+            $this->provider->purgeRememberTokens($user->getAuthIdentifier());
+        }
+        // Lakukan logout normal
+        $this->logout();
+    }
+
+    /**
+     * Logout dari device lain (kecuali device saat ini)
+     *
+     * @return void
+     */
+    public function logoutOtherDevices($password, $attribute = 'password'){
+        // Early return if no user
+        if (!$this->user()) {
+            return null;
+        }
+        $user = $this->user();        
+        // Verify password before logout
+        if (!$this->provider->validateCredentials($user, [$attribute => $password])) {
+            return false;
+        }
+        $currentSessionId = $this->session->getId();
+        // STEP 1: Delete sessions from database (except current)
+        if (config('session.driver') === 'database') {
+            DB::table(config('session.table', 'sessions'))->where('user_id', $user->getAuthIdentifier())->where('id', '!=', $currentSessionId)->delete();
+        }
+        // STEP 2:Rehash user password (Laravel's session invalidation for other devices)
+        $result = $this->rehashUserPassword($password, $attribute);
+        
+        // STEP 3: Delete other device tokens
+        if ($this->recaller()) {
+            $currentToken = $this->recaller()->token();
+            // Delete all tokens except current one
+            $user->rememberTokens()->where('token', '!=', $currentToken)->delete();
+        } else {
+            $user->rememberTokens()->delete();
+        }
+        
+        // STEP 4: Queue recaller cookie for current device if exists
+        if ($this->recaller()) {
+            $this->queueRecallerCookie($user, $this->recaller()->token());
+        }
+        // Fire other device logout event
+        $this->fireOtherDeviceLogoutEvent($user);
+        return $result;
+    }
+
+    /**
+     * Override cycle remember token
+     * Pastikan token di-cycle dengan benar
+     *
+     * @param  \Illuminate\Contracts\Auth\Authenticatable  $user
+     * @return void
+     */
+    protected function cycleRememberToken(AuthenticatableContract $user){
+        // Generate token baru
+        $token = Str::random(60);
+        // Update melalui provider
+        $this->provider->updateRememberToken($user, $token);
+        // Set cookie baru
+        $this->queueRecallerCookie($user,$token);
+    }
+
+    protected function queueRecallerCookie(AuthenticatableContract $user,$token=null){
+        // Token must be provided or generated
+        if (is_null($token)) {
+            $token = Str::random(60);            
+            // Also save to database if generating new token
+            $this->provider->updateRememberToken($user, $token);
+        }
+        // Create cookie value: user_id|token|password_hash
+        $value = $user->getAuthIdentifier() . '|' . $token . '|' . $user->getAuthPassword();
+        $this->getCookieJar()->queue($this->createRecaller($value));
+        $value = $user->getAuthIdentifier().'|'.$token.'|'.$user->getAuthPassword();
+        $this->getCookieJar()->queue($this->createRecaller($value));
+    }
+
     protected function createRememberToken(AuthenticatableContract $user){
-        $this->provider->addRememberToken($user->getAuthIdentifier(), $token = $this->getNewToken(), $this->expire);
+        $token = $this->getNewToken();        
+        // Add new remember token
+        $this->provider->addRememberToken($user->getAuthIdentifier(),$token,$this->expire);
+        // Purge expired tokens
         $this->provider->purgeRememberTokens($user->getAuthIdentifier(), true);
         return $token;
     }
@@ -76,52 +179,10 @@ class SessionGuard extends BaseGuard{
         return Str::random(60);
     }
 
-    public function logout(){
-        $user = $this->user();
-        $this->clearUserDataFromStorage();
-        if (isset($this->events)) {
-            $this->events->dispatch(new LogoutEvent($this->name, $user));
-        }
-        $this->user = null;
-        $this->loggedOut = true;
-    }
-
-    protected function clearUserDataFromStorage(){
-        $this->session->remove($this->getName());
-        $recaller = $this->recaller();
-        if (!is_null($recaller)) {
-            $this->getCookieJar()->queue($this->getCookieJar()->forget($this->getRecallerName()));
-            $this->provider->deleteRememberToken($recaller->id(), $recaller->token());
-        }
-    }
-
-    public function logoutOtherDevices($password, $attribute = 'password'){
-        if (!$this->user()) {
-            return;
-        }
-        $this->provider->purgeRememberTokens($this->user()->getAuthIdentifier());
-        return parent::logoutOtherDevices($password, $attribute);
-    }
-
-    protected function queueRecallerCookie(AuthenticatableContract $user, $token = null){
-        if (is_null($token)) {
-            $token = $this->createRememberToken($user);
-        }
-        $this->getCookieJar()->queue($this->createRecaller($user->getAuthIdentifier() . '|' . $token . '|' . $user->getAuthPassword()));
-    }
-
-    protected function createRecaller($value){
-        return $this->getCookieJar()->make($this->getRecallerName(), $value, $this->expire);
-    }
-
     public function rbac(){
-        $this->rbac = new Rbac($this->session,$this->user(),$this->recaller());
+        if(!$this->rbac){
+            $this->rbac = new Rbac($this->session,$this->user(),$this->recaller());
+        }
         return $this->rbac;
-    }
-
-    // get current remember token if any
-    public function getRememberToken(){
-        $recaller = $this->recaller();
-        return ($recaller) ? $recaller->token() : null;
     }
 }

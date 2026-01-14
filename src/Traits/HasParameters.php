@@ -1,6 +1,4 @@
-<?php
-
-// this code based on https://github.com/timacdonald/has-parameters
+<?php 
 
 declare(strict_types=1);
 

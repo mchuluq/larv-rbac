@@ -1,60 +1,31 @@
-<?php
-
-namespace Mchuluq\Larv\Rbac;
+<?php namespace Mchuluq\Larv\Rbac;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
-
 use Illuminate\Support\Collection;
-
-use Illuminate\Http\Request;
-use Cose\Algorithm\Signature;
-use Webauthn\PublicKeyCredentialLoader;
-use Cose\Algorithm\Manager as CoseAlgorithmManager;
-use Webauthn\TokenBinding\IgnoreTokenBindingHandler;
-use Webauthn\AuthenticatorAssertionResponseValidator;
-use Webauthn\AuthenticatorAttestationResponseValidator;
-use Webauthn\AttestationStatement\AttestationObjectLoader;
-use Webauthn\AttestationStatement\NoneAttestationStatementSupport;
-use Webauthn\AttestationStatement\PackedAttestationStatementSupport;
-use Webauthn\AuthenticationExtensions\ExtensionOutputCheckerHandler;
-use Webauthn\AttestationStatement\AttestationStatementSupportManager;
 
 class RbacServiceProvider extends ServiceProvider{
 
-    const WEBAUTHN_COOKIE = 'X-WebAuthn';
-
-    public function boot(){       
-        // load command
-        if ($this->app->runningInConsole()) {
-            include_once __DIR__ . '/../consoles/UserCommand.php';
-            include_once __DIR__ . '/../consoles/OtpCommand.php';
-
-            $this->commands([
-                \Mchuluq\Larv\Rbac\Consoles\UserCommand::class,
-                \Mchuluq\Larv\Rbac\Consoles\OtpCommand::class,
-            ]);
-        }
-
+    public function boot(){
         // register macros
-        Collection::make(glob(__DIR__ . '/Macros/*.php'))->mapWithKeys(function ($path) {
-            return [$path => pathinfo($path, PATHINFO_FILENAME)];
-        })->each(function ($macro, $path) {
-            require_once $path;
-        });
+        $this->registerMacros();
+        
+        // consoles
+        $this->registerConsoles();
 
-        // register macros request
-        Request::macro('hasCredential', function () {
-            return $this->cookies->has(RbacServiceProvider::WEBAUTHN_COOKIE);
-        });
+        // publish
+        $this->publishMigrations();
+        $this->publishConfig();
+        $this->publishResources();
+        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'rbac');
 
-        $this->configurePublishes();
+        // register routes
         $this->configureRoutes();
     }
 
     public function register(){
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'rbac');
-        $this->app->make('Mchuluq\Larv\Rbac\Http\Controllers\AccountController');
+        // $this->app->make('Mchuluq\Larv\Rbac\Http\Controllers\AccountController');
 
         // register rbac-web-guard for web guard
         Auth::extend('rbac-web-guard', function ($app, $name, array $config) {
@@ -79,30 +50,14 @@ class RbacServiceProvider extends ServiceProvider{
 
         // register middlewares
         $this->registerMiddlewares();
-
-        // register webauth lib
-        $this->registerWebauthnLib();
     }
 
     protected function registerMiddlewares(){
         $router = $this->app->make(\Illuminate\Routing\Router::class);
-        $router->aliasMiddleware('rbac-auth', \Mchuluq\Larv\Rbac\Http\Middlewares\Authenticate::class);
+        // $router->aliasMiddleware('rbac-auth', \Mchuluq\Larv\Rbac\Http\Middlewares\Authenticate::class);
+        $router->aliasMiddleware('rbac-link-session', \Mchuluq\Larv\Rbac\Http\Middlewares\LinkSessionToDeviceToken::class);
+        $router->aliasMiddleware('rbac-check-account', \Mchuluq\Larv\Rbac\Http\Middlewares\CheckAccount::class);
         $router->aliasMiddleware('rbac-check-permission', \Mchuluq\Larv\Rbac\Http\Middlewares\CheckPermission::class);
-    }
-
-    protected function configurePublishes(){
-        // package publishes
-        $this->publishes([
-            __DIR__ . '/../config/config.php' => config_path('rbac.php')
-        ], 'config');        
-        $this->publishes([
-            __DIR__ . '/../resources/migrations/create_rbac_tables.php.stub' => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_rbac_tables.php')
-        ], 'migration');
-        $this->publishes([
-            __DIR__.'/../resources/lang' => base_path('resources/lang/vendor/rbac'),
-            __DIR__.'/../resources/views' => base_path('resources/views/vendor/rbac'),
-        ],'view');
-        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'rbac');
     }
 
     protected function configureRoutes(){
@@ -111,65 +66,72 @@ class RbacServiceProvider extends ServiceProvider{
             require __DIR__ . '/Routes.php';
         }
     }
+    protected function publishMigrations(){
+        $migrations = array_merge(
+            glob(__DIR__ . '/../resources/migrations/*.php') ?: [],
+            glob(__DIR__ . '/../resources/migrations/*.php.stub') ?: []
+        );
 
-    protected function registerWebauthnLib(){
-        $this->app->bind(CoseAlgorithmManager::class, static function () {
-            return tap(new CoseAlgorithmManager, function ($manager) {
-                array_map(fn ($algo) => $manager->add(new $algo), [
-                    Signature\ECDSA\ES256::class,
-                    Signature\ECDSA\ES512::class,
-                    Signature\EdDSA\EdDSA::class,
-                    Signature\ECDSA\ES384::class,
-                    Signature\EdDSA\Ed25519::class,
-                    Signature\RSA\RS1::class,
-                    Signature\RSA\RS256::class,
-                    Signature\RSA\RS512::class,
-                ]);
-            });
-        });
+        $publishable = [];
+        $time = time();
 
-        $this->app->singleton(AttestationStatementSupportManager::class, static function ($app) {
-            return tap(new AttestationStatementSupportManager, function ($attestationStatementSupportManager) use ($app) {
-                $attestationStatementSupportManager->add(new NoneAttestationStatementSupport);
-                $attestationStatementSupportManager->add(new PackedAttestationStatementSupport($app[CoseAlgorithmManager::class]));
-            });
-        });
+        foreach ($migrations as $index => $path) {
+            $filename = basename($path);
 
-        $this->app->singleton(AttestationObjectLoader::class, static function ($app) {
-            return new AttestationObjectLoader(
-                $app[AttestationStatementSupportManager::class],
-                null,
-                $app['log']
-            );
-        });
+            // Remove any existing timestamp prefix from package filename (e.g., 2025_12_30_123456_)
+            $name = preg_replace('/^\d{4}_\d{2}_\d{2}_\d{6}_/', '', $filename);
 
-        $this->app->singleton(PublicKeyCredentialLoader::class, static function ($app) {
-            return new PublicKeyCredentialLoader(
-                $app[AttestationObjectLoader::class],
-                $app['log']
-            );
-        });
+            // If file ends with .stub (e.g., create_x_table.php.stub), drop the .stub so target ends with .php
+            if (substr($name, -5) === '.stub') {
+                $name = substr($name, 0, -5);
+            }
 
-        $this->app->bind(AuthenticatorAttestationResponseValidator::class, static function ($app) {
-            return new AuthenticatorAttestationResponseValidator(
-                $app[AttestationStatementSupportManager::class],
-                new CredentialSource,
-                new IgnoreTokenBindingHandler,
-                new ExtensionOutputCheckerHandler,
-                null,
-                $app['log']
-            );
-        });
+            // Ensure the name ends with .php
+            if (substr($name, -4) !== '.php') {
+                $name .= '.php';
+            }
 
-        $this->app->bind(AuthenticatorAssertionResponseValidator::class, static function ($app) {
-            return new AuthenticatorAssertionResponseValidator(
-                new CredentialSource,
-                new IgnoreTokenBindingHandler,
-                new ExtensionOutputCheckerHandler,
-                $app[CoseAlgorithmManager::class],
-                null,
-                $app['log']
-            );
-        });
+            // Skip if migration already exists in the application's migrations
+            if (count(glob(database_path("migrations/*_{$name}"))) > 0) {
+                continue;
+            }
+
+            // Ensure unique timestamp per file by incrementing seconds for each entry
+            $timestamp = date('Y_m_d_His', $time + $index);
+            $publishable[$path] = database_path("migrations/{$timestamp}_{$name}");
+        }
+
+        if (!empty($publishable)) {
+            $this->publishes($publishable, 'rbac-migrations');
+        }
     }
+    protected function publishConfig(){
+        $this->publishes([
+            __DIR__ . '/../config/config.php' => config_path('rbac.php')
+        ], 'rbac-config');        
+    }
+    protected function publishResources(){
+        $this->publishes([
+            __DIR__.'/../resources/lang' => base_path('resources/lang/vendor/rbac'),
+            __DIR__.'/../resources/views' => base_path('resources/views/vendor/rbac'),
+        ],'rbac-view');
+    }
+    protected function registerMacros(){
+        Collection::make(glob(__DIR__ . '/Macros/*.php'))->mapWithKeys(function ($path) {
+            return [$path => pathinfo($path, PATHINFO_FILENAME)];
+        })->each(function ($macro, $path) {
+            require_once $path;
+        });
+
+    }
+    protected function registerConsoles(){
+        // load command
+        if ($this->app->runningInConsole()) {
+            include_once __DIR__ . '/../consoles/CleanupExpiredTokens.php';
+            $this->commands([
+                \Mchuluq\Larv\Rbac\Commands\CleanupExpiredTokens::class
+            ]);
+        }
+    }
+
 }

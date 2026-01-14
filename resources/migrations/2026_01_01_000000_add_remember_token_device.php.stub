@@ -1,0 +1,23 @@
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class AddRememberTokenDevice extends Migration{
+
+    public function up(){
+        Schema::table('remember_tokens', function (Blueprint $table) {
+            $table->datetime('last_used_at')->nullable()->after('expires_at');
+            $table->string('device_fingerprint',255)->nullable()->after('user_agent');
+            $table->json('ip_history')->nullable()->after('ip_address');
+            $table->string('device_type',64)->nullable()->after('device_fingerprint');
+        });
+    }
+
+    public function down(){
+        Schema::table('remember_tokens', function (Blueprint $table) {
+            $table->dropColumn(['last_used_at','device_fingerprint','ip_history','device_type']);
+        });
+    }
+}

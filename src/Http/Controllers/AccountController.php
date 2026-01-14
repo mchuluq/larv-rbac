@@ -1,28 +1,12 @@
-<?php
-
-namespace Mchuluq\Larv\Rbac\Http\Controllers;
-
-use Mchuluq\Larv\Rbac\Authenticators\GoogleAuthenticator;
+<?php namespace Mchuluq\Larv\Rbac\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class AccountController extends Controller{
-
-    protected function attemptOtp(Request $req){
-        $req->validate([config('rbac.otp_input_name') => 'required']);
-        $ga = new GoogleAuthenticator();
-        if (!$ga->verifyCode($this->guard()->user()->otp_secret, $req->input(config('rbac.otp_input_name')))) {
-            throw ValidationException::withMessages(['otp' => [__('rbac::rbac.otp_failed_response')],]);
-        }
-        $this->guard()->rbac()->authenticateOtp(true);
-        return $req->wantsJson() ? response()->json(['message'=>__('rbac::rbac.otp_success_response')]) : redirect()->intended($this->redirectPath());
-    }
 
     protected function guard(){
         return Auth::guard();
@@ -34,22 +18,10 @@ class AccountController extends Controller{
         return route('rbac.account.switch',['account_id'=>$account_id]) ?? '/home';
     }
 
-    function doOtp(Request $req){
-        if ($req->isMethod('post')) {
-            return $this->attemptOtp($req);
-        } else {
-            $data['url'] = route('auth.otp');
-            $data['label'] = config('app.name')." (".$this->guard()->user()->email.")";
-            return $req->wantsJson() ? response()->json($data) : view(config('rbac.views.otp_confirm'), $data);
-        }
-    }
-
     function accountSwitch(Request $req,$account_id=null){
         if(!$account_id){
             $data['user'] = Auth::user();
-            $data['accounts'] = Auth::user()->accounts()
-            ->with('accountable')
-            ->where('active', true)->get();
+            $data['accounts'] = Auth::user()->accounts()->with('accountable')->where('active', true)->get();
             $data['account_types'] = config('rbac.account_types');
             return $req->wantsJson() ? response()->json($data) : view(config('rbac.views.account'), $data);
         }else{
@@ -63,34 +35,79 @@ class AccountController extends Controller{
         }
     }
 
-    
-    function otpRequest(Request $req){
-        $ga = new GoogleAuthenticator();
-        $user = $this->guard()->user();
-        $data["user"] = $user;
-        $data["otp_secret"] = $ga->createSecret();
-        $data["otp_qr_image"] = $ga->getQRCodeGoogleUrl($user->email,$data["otp_secret"],config('app.name'));            
-        return $req->wantsJson() ? response()->json($data) : view(config('rbac.views.otp_register'), $data);
+    public function devices(Request $req){
+        $user = Auth::user();
+        $devices = $user->rememberTokens()->active()->orderBy('last_used_at','desc')->get()->append(['device_name','device_info','device_icon','ip_info','session_last_activity'])->map(function($row){
+            $row['is_current_device'] = $row->isCurrentDevice();
+            return $row;
+        });
+
+        $stats['devices'] = $devices;
+        $stats['sessions'] = $user->sessions()->count();
+        $stats['total'] = $devices->count();
+        $stats['desktop'] = $user->rememberTokens()->active()->deviceType('desktop')->count();
+        $stats['mobile'] = $user->rememberTokens()->active()->deviceType('smartphone')->count();
+        
+        return response()->json($stats);
     }
-    function otpRegister(Request $req){
-        $user = $this->guard()->user();
-        $req->validate([
-            'otp_secret' => 'required',
-            'password' => 'required|password'
-        ]);
-        $user->otp_secret = $req->input('otp_secret');
-        $user->save();
-        $msg = __('rbac::rbac.otp_enabled_success');
-        return $req->wantsJson() ? response()->json(['message'=>$msg]) : redirect(config('rbac.authenticated_redirect_uri'))->with('message', $msg);
+
+    public function destroy(Request $req,$id=null){
+        if(!$id){
+            return $this->logoutOthers($req);
+        }
+        $token = Auth::user()->rememberTokens()->findOrFail($id);
+        // Cek apakah ini device saat ini
+        if ($token->isCurrentDeviceByToken()) {
+            return response()->json(['success' => false, 'message' => 'Tidak bisa logout dari device saat ini. Gunakan tombol logout biasa.'], 400);
+        }
+        $token->delete();
+        return response()->json(['success' => true,'message' => 'Device berhasil dilogout.']);
     }
-    function otpUnregister(Request $req){
-        $user = $this->guard()->user();
-        $req->validate([
-            'password'=>'required|password'
+
+    public function logoutOthers(Request $request){
+        $request->validate([
+            'password' => 'required',
         ]);
-        $user->otp_secret = null;
-        $user->save();
-        $msg = __('rbac::rbac.otp_disabled_success');
-        return $req->wantsJson() ? response()->json(['message'=>$msg]) : redirect(config('rbac.authenticated_redirect_uri'))->with('message', $msg);
+
+        $user = Auth::user();
+        // Count sessions and tokens before
+        $sessions_before = 0;
+        $tokens_before = $user->rememberTokens()->count();
+        if (config('session.driver') === 'database') {
+            $sessions_before = DB::table(config('session.table', 'sessions'))->where('user_id', $user->id)->count();
+        }
+
+        // attempt logout
+        $result = Auth::logoutOtherDevices($request->password);
+        if ($result === false) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Password salah.'
+            ],400);
+        }
+
+        $sessions_after = 0;
+        $tokens_after = $user->rememberTokens()->count();
+        if (config('session.driver') === 'database') {
+            $sessions_after = DB::table(config('session.table', 'sessions'))->where('user_id', $user->id)->count();
+        }
+
+        $sessions_deleted = $sessions_before - $sessions_after;
+        $tokens_deleted = $tokens_before - $tokens_after;
+
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil logout dari semua device lain. '."({$sessions_deleted} session dan {$tokens_deleted} remember token dihapus)"
+        ]);
+    }
+
+    public function logoutAll(){
+        Auth::logoutAllDevices();
+        return response()->json([
+            'success' => true, 
+            'message' => 'Berhasil logout dari semua device.',
+            'redirect' => 'login'
+        ]);
     }
 }

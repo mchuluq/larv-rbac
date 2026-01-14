@@ -1,6 +1,4 @@
-<?php
-
-namespace Mchuluq\Larv\Rbac\Http\Middlewares;
+<?php namespace Mchuluq\Larv\Rbac\Http\Middlewares;
 
 use Mchuluq\Larv\Rbac\Traits\HasParameters;
 
@@ -12,7 +10,7 @@ class CheckPermission{
 
     public function handle($request, Closure $next, $route=null){
         $route = $route ?? $request->route()->getAction('as');
-        $permissions = $request->session()->get('rbac.permissions',[]);
+        $permissions = $request->user()->storage()->get('rbac.permissions',[]);
         if (!$route || !$permissions) {
             return $this->setAbortResponse($request);
         } elseif (in_array($route,$permissions)) {
