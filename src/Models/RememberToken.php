@@ -59,11 +59,13 @@ class RememberToken extends Model{
     }
 
     public function getIpInfoAttribute(){
-        $ip = new IpHelper($this->ip_address);
-        if($ip->isLocal()){
-            return 'local';
+        $ips = explode(',',$this->ip_address);
+        $result = [];
+        foreach($ips as $ip){
+            $ipapi = new IpHelper(trim($ip));
+            $result[$ip] = ($ipapi->isLocal()) ? ['status'=>'fail','message'=>'private range'] : $ipapi->lookup();
         }
-        return $ip->lookup();
+        return $result;
     }
 
     public function getBrowserAttribute(){

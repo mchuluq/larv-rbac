@@ -82,4 +82,8 @@ class IpHelper{
         ];
     }
 
+    public static function resolve():string{
+        return self::getRealIp(request());
+    }
+
 }

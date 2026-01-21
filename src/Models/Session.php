@@ -3,6 +3,8 @@
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Mchuluq\Larv\Rbac\Helpers\DeviceHelper;
+use Mchuluq\Larv\Rbac\Helpers\IpHelper;
 
 class Session extends Model{
     
@@ -35,5 +37,24 @@ class Session extends Model{
             'active_user_devices' => Session::whereNotNull('user_id')->whereNotNull('remember_token')->whereRaw(DB::raw("(UNIX_TIMESTAMP() - last_activity) <= ".self::$SESSION_LIFETIME.""))->count(),
             'total_user_devices' => Session::whereNotNull('user_id')->whereNotNull('remember_token')->count(),
         ];
+    }
+
+    public function getDeviceNameAttribute(){
+        return DeviceHelper::getDeviceName($this->user_agent);
+    }
+    public function getDeviceInfoAttribute(){
+        return DeviceHelper::getDeviceInfo($this->user_agent);
+    }
+    public function getDeviceIconAttribute(){
+        return DeviceHelper::getDeviceIcon($this->user_agent);
+    }
+    public function getIpInfoAttribute(){
+        $ips = explode(',',$this->ip_address);
+        $result = [];
+        foreach($ips as $ip){
+            $ipapi = new IpHelper(trim($ip));
+            $result[$ip] = ($ipapi->isLocal()) ? ['status'=>'fail','message'=>'private range'] : $ipapi->lookup();
+        }
+        return $result;
     }
 }

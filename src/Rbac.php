@@ -80,7 +80,7 @@ class Rbac implements RbacInterface {
     }
 
     public function hasPermissions($route):bool{
-        $permissions = $this->user->storage->get('rbac.permissions',[]);
+        $permissions = $this->user->storage()->get('rbac.permissions',[]);
         return in_array($route,$permissions);
     }
 
