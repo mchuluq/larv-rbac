@@ -13,7 +13,7 @@ class RoleActor extends Model{
     function assign($for, $role_id, $type = 'account_id'){
         $data = array();
         if (!$role_id) {
-            return;
+            return $this->remove($for, $type);
         }
         if (in_array($type, ['account_id', 'group_id'])) {
             if (is_array($role_id)) {

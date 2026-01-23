@@ -13,7 +13,7 @@ class Permission extends Model{
     function assign($for, $route, $type = 'account_id'){
         $data = array();
         if (!$route) {
-            return;
+            return $this->remove($for, $type);
         }
         if (in_array($type, ['account_id', 'group_id','role_id'])) {
             if (is_array($route)) {

@@ -10,10 +10,12 @@ class DataAccess extends Model{
 
     protected $fillable = array('data_type','data_id','role_id','group_id','account_id');
 
+    public $access_type = ['prodi','fakultas','level','organisasi'];
+
     function assign($for, $data_id, $data_type, $type = 'account_id'){
         $data = array();
         if (!$data_id || !$data_type) {
-            return;
+            return $this->remove($for,$data_type, $type);
         }
         if (in_array($type, ['account_id', 'group_id','role_id'])) {
             if (is_array($data_id)) {
