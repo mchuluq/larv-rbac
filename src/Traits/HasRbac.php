@@ -6,6 +6,7 @@ use Mchuluq\Larv\Rbac\Models\Account;
 use Mchuluq\Larv\Rbac\Models\RememberToken;
 use Mchuluq\Larv\Rbac\Helpers\ModelStorage;
 use Mchuluq\Larv\Rbac\Models\Session;
+use Mchuluq\Larv\Rbac\Rbac;
 
 trait HasRbac {
 
@@ -48,6 +49,24 @@ trait HasRbac {
     public function storage(){
         $storage = new ModelStorage($this->getTable(), $this->id,0);
         return $storage;
+    }
+
+    public function syncAccessControl(){
+        $account = $this->account;
+        if (!$account) {
+            return false;
+        }
+        $this->forceFill(['account_id'=>$account->id])->save();
+        $account->getRoles()->getPermissions();
+        $rbac = new Rbac(null,$this,null);
+        $data = array(
+            'account' => $account->toArray(),
+            'user' => $this->toArray(),
+            'permissions' => $rbac->getPermissions($account->id, $account->group_id),
+            'data_access' => $rbac->getDataAccess($account->id, $account->group_id),
+        );
+        $this->storage()->set('rbac', $data);
+        return true;
     }
 
 }
