@@ -14,7 +14,7 @@ class Rbac implements RbacInterface {
     protected $user;
     protected $recaller;
 
-    public function __construct($session,$user,$recaller){
+    public function __construct($session = null,$user = null,$recaller = null){
         $this->session = $session;
         $this->user = $user;
         $this->recaller = $recaller;
@@ -44,6 +44,7 @@ class Rbac implements RbacInterface {
         ]);
         return true;
     }
+
     
     public function getPermissions($account_id,$group_id): array{
         $tperm = with(new Permission)->getTable();
@@ -80,7 +81,7 @@ class Rbac implements RbacInterface {
     }
 
     public function hasPermissions($route):bool{
-        $permissions = $this->user->storage->get('rbac.permissions',[]);
+        $permissions = $this->user->storage()->get('rbac.permissions',[]);
         return in_array($route,$permissions);
     }
 
