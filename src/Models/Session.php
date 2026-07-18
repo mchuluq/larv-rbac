@@ -13,11 +13,11 @@ class Session extends Model{
     static $SESSION_LIFETIME = 5 * 60; // last 5 minutes
 
     public function isExpired(){
-        return $this->last_activity < Carbon::now()->subMinutes(config('session.lifetime'))->getTimestamp();
+        return $this->last_activity < Carbon::now()->subMinutes((int) config('session.lifetime'))->getTimestamp();
     }
 
     public function getExpiresAtAttribute(){
-        return Carbon::createFromTimestamp($this->last_activity)->addMinutes(config('session.lifetime'))->toDateTimeString();
+        return Carbon::createFromTimestamp($this->last_activity)->addMinutes((int) config('session.lifetime'))->toDateTimeString();
     }
 
     public static function active_sessions(){
