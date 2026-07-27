@@ -90,11 +90,18 @@ class Rbac implements RbacInterface {
     }
 
     public function account(){
+        if(!$this->user){
+            throw new \Exception('user not authenticated');
+        }
         return $this->user->account()->first();
     }
-    
+
     public function accountable($type=null){
-        $accountable = $this->account()->accountable()->first();
+        $account = $this->account();
+        if(!$account){
+            throw new \Exception('account not found');
+        }
+        $accountable = $account->accountable()->first();
         if($type){
             if(get_class($accountable) != $type){
                 throw new \Exception('model not match');
