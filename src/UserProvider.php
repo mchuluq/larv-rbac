@@ -121,9 +121,15 @@ class UserProvider extends BaseUserProvider{
         $query->delete();
     }
 
+    /**
+     * Tidak ada filter status di sini: user yang dinonaktifkan adalah user yang
+     * ter-soft-delete, dan global scope SoftDeletingScope sudah melewatkannya
+     * di semua query - termasuk retrieveById() dan retrieveByCredentials()
+     * milik EloquentUserProvider. Lihat Mchuluq\Larv\Rbac\Models\User.
+     */
     protected function getModelById($identifier){
         $model = $this->createModel();
-        return $model->where([$model->getAuthIdentifierName()=>$identifier,'active'=>true])->first();
+        return $model->where($model->getAuthIdentifierName(),$identifier)->first();
     }
 
     protected function enforceDeviceLimit($user){
