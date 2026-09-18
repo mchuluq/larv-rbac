@@ -3,9 +3,12 @@
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Arr;
+use Illuminate\Contracts\Auth\Authenticatable;
 
-Builder::macro('filterDataAccess', function ($column_name,$data_type,$skip_null=false) {
-    $user = Auth::user();
+Builder::macro('filterDataAccess', function ($column_name,$data_type,$skip_null=false,Authenticatable $user = null) {
+    if(!$user){
+        $user = Auth::user();
+    }
     if(!$user && $skip_null){
         return $this;
     }

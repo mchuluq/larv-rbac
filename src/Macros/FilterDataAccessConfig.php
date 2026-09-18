@@ -4,18 +4,20 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Arr;
 
-Builder::macro('filterDataAccessConfig', function (array $config,$column_name,$data_type,$skip_null=false) {
-    $user = Auth::user();
+Builder::macro('filterDataAccessConfig', function (array $config,$column_name,$data_type,$skip_null=false,Authenticatable $user = null) {
+    if(!$user){
+        $user = Auth::user();
+    }
     if(!$user && $skip_null){
         return $this;
     }
     $data_access = ($user) ? $user->storage()->get('rbac.data_access', []) : [];
     $data_ids = Arr::get($data_access,$data_type,[]);
-    
+
     if((!Auth::check() && $skip_null) || (empty($data_ids) && $skip_null)){
         return $this;
     }
-    
+
     $filter = [];
     foreach($config as $key=>$arrs){
         foreach($data_ids as $id){
@@ -25,7 +27,7 @@ Builder::macro('filterDataAccessConfig', function (array $config,$column_name,$d
         }
     }
     $filter = array_unique($filter);
-    
+
     if(is_array($filter)){
         $this->whereIn($column_name, $filter);
     }else{
