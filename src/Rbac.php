@@ -32,6 +32,7 @@ class Rbac implements RbacInterface {
         $data = array(
             'account' => $account->toArray(),
             'user' => $this->user->toArray(),
+            'roles' => $this->getRoles($account->id, $account->group_id),
             'permissions' => $this->getPermissions($account->id, $account->group_id),
             'data_access' => $this->getDataAccess($account->id, $account->group_id),
         );
@@ -45,7 +46,12 @@ class Rbac implements RbacInterface {
         return true;
     }
 
-    
+    public function getRoles($account_id,$group_id): array{
+        $troleact = with(new RoleActor)->getTable();
+        $result = DB::table($troleact)->select(["role_id"])->where("account_id", $account_id)->orWhere("group_id", $group_id)->groupBy('role_id')->get()->pluck('role_id')->toArray();
+        return $result;
+    }
+
     public function getPermissions($account_id,$group_id): array{
         $tperm = with(new Permission)->getTable();
         $troleact = with(new RoleActor)->getTable();
